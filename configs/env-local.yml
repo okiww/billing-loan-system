@@ -1,0 +1,12 @@
+Http:
+  addr: ":8088"
+  readTimeout: 15
+  writeTimeout: 15
+  apiPrefix: "/billing"
+  baseURL: "/api"
+db:
+  driverName: "mysql"
+  source: "user:password@tcp(localhost:3306)/billing"
+  maxOpenConn: 30
+  maxIdleConn: 10
+  connMaxLifetime: 900
