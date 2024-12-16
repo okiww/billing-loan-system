@@ -1,6 +1,13 @@
 serve-http:
 	@go run main.go http
 
+lint:
+	@golangci-lint run -E gofmt
+
+format:
+	@$(MAKE) fmt
+	@$(MAKE) imports
+
 fmt:
 	@echo "Formatting code style..."
 	gofmt -w -s cmd/.. \
@@ -19,3 +26,11 @@ imports:
 		configs/.. \
 		internal/..
 	@echo "[DONE] Formatting imports..."
+
+gen-mocks:
+	@echo "  >  Rebuild Mocking..."
+
+	mockgen -source=pkg/db/mysql.go -destination=gen/mocks/db/mock_db.go -package=db_mocks
+
+	mockgen  --package mockgen -source=internal/loan/services/loan_service.go -destination=gen/mocks/loan/loan_service_mock.go -package=loan_service_mock
+	mockgen  --package mockgen -source=internal/loan/repositories/loan_repository.go -destination=gen/mocks/loan/loan_repository_mock.go -package=loan_repository_mock

@@ -2,12 +2,17 @@ package repositories
 
 import (
 	"context"
-	"fmt"
+	"github.com/okiww/billing-loan-system/internal/loan/models"
+	"sync"
 
-	"github.com/okiww/billing-loan-system/internal/models"
 	mysql "github.com/okiww/billing-loan-system/pkg/db"
 	"github.com/okiww/billing-loan-system/pkg/logger"
 	"github.com/sirupsen/logrus"
+)
+
+var (
+	repo     LoanRepositoryInterface
+	repoLock sync.Once
 )
 
 type loanRepository struct {
@@ -27,7 +32,6 @@ func (l *loanRepository) GetLoanByID(id int64) (*models.LoanModel, error) {
 
 // CreateLoan inserts a new loan into the database
 func (l *loanRepository) CreateLoan(ctx context.Context, loan *models.LoanModel) (int64, error) {
-	fmt.Println(loan)
 	query := `INSERT INTO loans (user_id, name, loan_amount, loan_total_amount, outstanding_amount, interest_percentage, status, start_date, due_date, loan_terms_per_week)
               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 	result, err := l.DB.ExecContext(ctx, query, loan.UserID, loan.Name, loan.LoanAmount, loan.LoanTotalAmount, loan.OutstandingAmount, loan.InterestPercentage, loan.Status, loan.StartDate, loan.DueDate, loan.LoanTermsPerWeek)
@@ -52,7 +56,10 @@ type LoanRepositoryInterface interface {
 }
 
 func NewLoanRepository(db *mysql.DBMySQL) LoanRepositoryInterface {
-	return &loanRepository{
-		db,
-	}
+	repoLock.Do(func() {
+		repo = &loanRepository{
+			db,
+		}
+	})
+	return repo
 }
