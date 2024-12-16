@@ -11,9 +11,10 @@ import (
 
 func InitCtx(db *mysql.DBMySQL) handlerctx.HandlerCtx {
 	loanRepository := repositories.NewLoanRepository(db)
+	loanBillRepository := repositories.NewLoanBillRepository(db)
 
 	serviceCtx := servicectx.ServiceCtx{
-		LoanService: services.NewLoanService(loanRepository),
+		LoanService: services.NewLoanService(loanRepository, loanBillRepository),
 	}
 
 	handlerCtx := handlerctx.HandlerCtx{

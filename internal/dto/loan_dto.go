@@ -8,12 +8,12 @@ import (
 type LoanRequest struct {
 	UserID             int       `json:"user_id"`
 	Name               string    `json:"name"`
-	LoanAmount         int       `json:"loan_amount"`
+	LoanAmount         int32     `json:"loan_amount"`
 	InterestPercentage float64   `json:"interest_percentage"`
 	Status             string    `json:"status"` // ACTIVE, DELINQUENT, CLOSED, PENDING
 	StartDate          time.Time `json:"start_date"`
 	DueDate            time.Time `json:"due_date"`
-	LoanTermsPerWeek   int       `json:"loan_terms_per_week"`
+	LoanTermsPerWeek   int32     `json:"loan_terms_per_week"`
 }
 
 type LoanResponse struct {

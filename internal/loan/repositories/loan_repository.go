@@ -1,6 +1,8 @@
 package repositories
 
 import (
+	"context"
+	"fmt"
 	"github.com/okiww/billing-loan-system/internal/models"
 	mysql "github.com/okiww/billing-loan-system/pkg/db"
 	"github.com/okiww/billing-loan-system/pkg/logger"
@@ -23,22 +25,29 @@ func (l *loanRepository) GetLoanByID(id int64) (*models.LoanModel, error) {
 }
 
 // CreateLoan inserts a new loan into the database
-func (l *loanRepository) CreateLoan(loan *models.LoanModel) error {
-	query := `INSERT INTO loans (user_id, name, loan_amount, interest_percentage, status, start_date, due_date, loan_terms_per_week)
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
-	_, err := l.DB.Exec(query, loan.UserID, loan.Name, loan.LoanAmount, loan.InterestPercentage, loan.Status, loan.StartDate, loan.DueDate, loan.LoanTermsPerWeek)
+func (l *loanRepository) CreateLoan(ctx context.Context, loan *models.LoanModel) (int64, error) {
+	fmt.Println(loan)
+	query := `INSERT INTO loans (user_id, name, loan_amount, loan_total_amount, outstanding_amount, interest_percentage, status, start_date, due_date, loan_terms_per_week)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+	result, err := l.DB.ExecContext(ctx, query, loan.UserID, loan.Name, loan.LoanAmount, loan.LoanTotalAmount, loan.OutstandingAmount, loan.InterestPercentage, loan.Status, loan.StartDate, loan.DueDate, loan.LoanTermsPerWeek)
 	if err != nil {
 		logger.GetLogger().WithFields(logrus.Fields{
 			"dataModel": loan,
-		}).Error("error when save loan to db")
-		return err
+		}).Error("error when save to loans table")
+		return 0, err
 	}
-	return err
+
+	// Get the last inserted ID
+	id, err := result.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+	return id, err
 }
 
 type LoanRepositoryInterface interface {
 	GetLoanByID(id int64) (*models.LoanModel, error)
-	CreateLoan(loan *models.LoanModel) error
+	CreateLoan(ctx context.Context, loan *models.LoanModel) (int64, error)
 }
 
 func NewLoanRepository(db *mysql.DBMySQL) LoanRepositoryInterface {
