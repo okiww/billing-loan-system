@@ -7,7 +7,7 @@ import (
 	"context"
 	"github.com/gorilla/mux"
 	"github.com/okiww/billing-loan-system/configs"
-	"github.com/okiww/billing-loan-system/pkg/db"
+	mysql "github.com/okiww/billing-loan-system/pkg/db"
 	"github.com/okiww/billing-loan-system/pkg/logger"
 	"github.com/okiww/billing-loan-system/port/rest"
 	"github.com/spf13/cobra"
@@ -38,10 +38,22 @@ func init() {
 }
 
 func ServeHttp() {
-	router := mux.NewRouter()
-	rest.RegisterRoutes(router)
 	cfg := configs.InitConfig()
-	db.InitDB(cfg.DB.Source)
+	// initial connection to database
+	dbInit := mysql.InitDB(&cfg.DB)
+	db, err := dbInit.Connect()
+	if err != nil {
+		log.Fatalf("failed to connect db")
+	}
+
+	// initial domain context
+	domainCtx := InitCtx(db)
+
+	// initial router
+	router := mux.NewRouter()
+	rest.RegisterRoutes(router, rest.Domain{
+		Domain: domainCtx,
+	})
 
 	// Create the HTTP server
 	server := &http.Server{

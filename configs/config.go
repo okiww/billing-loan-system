@@ -30,6 +30,7 @@ type HttpConfig struct {
 
 type DBConfig struct {
 	DriverName      string
+	DBName          string
 	Source          string
 	MaxOpenConn     int
 	MaxIdleConn     int

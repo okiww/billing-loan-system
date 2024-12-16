@@ -1,60 +1,91 @@
 package db
 
 import (
-	"database/sql"
-	"log"
-
+	"context"
+	"fmt"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/jmoiron/sqlx"
+	"github.com/okiww/billing-loan-system/configs"
+	log "github.com/sirupsen/logrus"
 )
 
-// DB is the global database connection object
-var DB *sql.DB
-
-// Initialize function to set up the MySQL connection
-func InitDB(dataSourceName string) error {
-	var err error
-	DB, err = sql.Open("mysql", dataSourceName)
-	if err != nil {
-		log.Fatalf("Error opening database connection: %v", err)
-		return err
-	}
-
-	// Verify the connection
-	if err := DB.Ping(); err != nil {
-		log.Fatalf("Error pinging the database: %v", err)
-		return err
-	}
-
-	log.Println("Successfully connected to the database")
-	return nil
+type DBMySQL struct {
+	cfg    *configs.DBConfig
+	DB     *sqlx.DB
+	ExecTx TxExecutor
 }
 
-// CloseDB closes the database connection
-func CloseDB() error {
-	if err := DB.Close(); err != nil {
-		log.Fatalf("Error closing the database: %v", err)
-		return err
-	}
-	log.Println("Database connection closed")
-	return nil
+type DB struct {
+	DB     *sqlx.DB
+	ExecTx TxExecutor
 }
 
-// QueryDB runs a select query and returns the result
-func QueryDB(query string, args ...interface{}) (*sql.Rows, error) {
-	rows, err := DB.Query(query, args...)
+type DBInterface interface {
+	Connect() (*DBMySQL, error)
+	CloseDB() error
+}
+
+func InitDB(cfg *configs.DBConfig) DBInterface {
+	return &DBMySQL{
+		cfg,
+		nil,
+		ExecTx,
+	}
+}
+
+func (d *DBMySQL) Connect() (*DBMySQL, error) {
+	dbMySQL, err := sqlx.Connect("mysql", d.cfg.Source)
 	if err != nil {
-		log.Printf("Error executing query: %v", err)
 		return nil, err
 	}
-	return rows, nil
+
+	dbMySQL.SetMaxOpenConns(200)
+	dbMySQL.SetMaxIdleConns(10)
+
+	log.WithFields(log.Fields{
+		"dsn":  d.cfg.Source,
+		"name": d.cfg.DBName,
+	}).Info("Success connect to db")
+
+	return &DBMySQL{
+		DB:     dbMySQL,
+		ExecTx: ExecTx,
+	}, nil
 }
 
-// ExecuteDB runs an insert/update/delete query
-func ExecuteDB(query string, args ...interface{}) (sql.Result, error) {
-	result, err := DB.Exec(query, args...)
+// TxExecutor accesses ExecTx from outer package
+type TxExecutor func(ctx context.Context, db *sqlx.DB, fn func(tx *sqlx.Tx) error) error
+
+// ExecTx runs fn inside tx which should already have begun.
+func ExecTx(ctx context.Context, db *sqlx.DB, fn func(tx *sqlx.Tx) error) error {
+	tx, err := db.Beginx()
 	if err != nil {
-		log.Printf("Error executing query: %v", err)
-		return nil, err
+		return err
 	}
-	return result, nil
+
+	err = fn(tx)
+	if err != nil {
+		rbErr := tx.Rollback()
+		if rbErr != nil {
+			return fmt.Errorf("tx err: %v, rb err: %v", err, rbErr)
+		}
+		return err
+	}
+
+	return tx.Commit()
+}
+
+func (d *DBMySQL) CloseDB() error {
+	if d.DB == nil {
+		return fmt.Errorf("database connection is nil")
+	}
+
+	err := d.DB.Close()
+	if err != nil {
+		log.WithError(err).Error("Failed to close the database connection")
+		return err
+	}
+
+	log.Info("Database connection closed successfully")
+	return nil
 }

@@ -6,6 +6,7 @@ Http:
   baseURL: "/api"
 db:
   driverName: "mysql"
+  dbName: "billing"
   source: "user:password@tcp(localhost:3306)/billing"
   maxOpenConn: 30
   maxIdleConn: 10
