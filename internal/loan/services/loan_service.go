@@ -20,7 +20,7 @@ type loanService struct {
 }
 
 func (l *loanService) CreateLoan(ctx context.Context, request dto.LoanRequest) error {
-	logger.Info("[LoanService][CreateLoan]")
+	logger.GetLogger().Info("[LoanService][CreateLoan]")
 	// Create a new loan
 	loanTotalAmount := int32(float64(request.LoanAmount) + (float64(request.LoanAmount) * 10 / 100))
 	newLoan := &models.LoanModel{
@@ -54,6 +54,30 @@ func (l *loanService) CreateLoan(ctx context.Context, request dto.LoanRequest) e
 	}
 
 	return nil
+}
+
+func (l *loanService) UpdateLoanBill(ctx context.Context) error {
+	logger.GetLogger().Info("[LoanService][UpdateLoanBill]")
+	// this is for update loan bill from pending to billed
+	err := l.loanBillRepo.UpdateLoanBillStatuses(ctx)
+	if err != nil {
+		logger.GetLogger().Error("[LoanService][UpdateLoanBill] Error when update loan bill statuses")
+		return err
+	}
+	// this is for update loan that already overdue but still billed to overdue
+	// TODO calculate user is_delinquent(if has more 2 overdue loan_bills)
+	return nil
+}
+
+func (l *loanService) GetAllActiveLoan(ctx context.Context) ([]models.LoanModel, error) {
+	logger.GetLogger().Info("[LoanService][GetAllActiveLoan]")
+	loans, err := l.loanRepo.FetchActiveLoan(ctx)
+	if err != nil {
+		logger.GetLogger().Errorf("[LoanService][GetAllActiveLoan] Error when fetch active loans with err: %v", err)
+		return []models.LoanModel{}, err
+	}
+
+	return loans, nil
 }
 
 // generateLoanBills generates weekly loan bills based on the loan information
@@ -119,7 +143,9 @@ func (l *loanService) generateLoanBills(ctx context.Context, loan *models.LoanMo
 }
 
 type LoanServiceInterface interface {
+	GetAllActiveLoan(ctx context.Context) ([]models.LoanModel, error)
 	CreateLoan(ctx context.Context, request dto.LoanRequest) error
+	UpdateLoanBill(ctx context.Context) error
 }
 
 func NewLoanService(loanRepo repositories.LoanRepositoryInterface, loanBillRepo repositories.LoanBillRepositoryInterface) LoanServiceInterface {

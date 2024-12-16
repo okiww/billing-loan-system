@@ -4,7 +4,15 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"fmt"
+	"context"
+	"github.com/okiww/billing-loan-system/configs"
+	"github.com/okiww/billing-loan-system/internal/ctx/servicectx"
+	"github.com/okiww/billing-loan-system/internal/loan/repositories"
+	"github.com/okiww/billing-loan-system/internal/loan/services"
+	mysql "github.com/okiww/billing-loan-system/pkg/db"
+	"github.com/okiww/billing-loan-system/pkg/logger"
+	"github.com/robfig/cron/v3"
+	"time"
 
 	"github.com/spf13/cobra"
 )
@@ -20,20 +28,71 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("background called")
+		runCronJob()
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(backgroundCmd)
+}
 
-	// Here you will define your flags and configuration settings.
+func runCronJob() {
+	// Create a new cron scheduler
+	c := cron.New(cron.WithLocation(time.Local))
 
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// backgroundCmd.PersistentFlags().String("foo", "", "A help for foo")
+	_, err := c.AddFunc("*/1 * * * *", myCronJob) // Should change to run every monday at 00:00
+	if err != nil {
+		logger.GetLogger().Fatal("Error adding cron job:", err)
+	}
 
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// backgroundCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// Start the cron scheduler in the background
+	c.Start()
+
+	// Block main goroutine so that the program continues running
+	// It will keep running indefinitely, and cron jobs will run as per the schedule
+	select {}
+}
+
+// This function will be called by the cron job
+func myCronJob() {
+	logger.GetLogger().Info("[Cronjob] Running cron for update bills")
+	cfg := configs.InitConfig()
+	// initial connection to database
+	dbInit := mysql.InitDB(&cfg.DB)
+	db, err := dbInit.Connect()
+	if err != nil {
+		logger.Fatalf("failed to connect db")
+	}
+
+	// initial domain context
+	loanRepository := repositories.NewLoanRepository(db)
+	loanBillRepository := repositories.NewLoanBillRepository(db)
+
+	serviceCtx := servicectx.ServiceCtx{
+		LoanService: services.NewLoanService(loanRepository, loanBillRepository),
+	}
+
+	ctx := context.Background()
+
+	logger.GetLogger().Info("[Cronjob] Fetch all active loan")
+	loans, err := serviceCtx.LoanService.GetAllActiveLoan(ctx)
+	if err != nil {
+		logger.Fatalf("[Cronjob] Error update loan bills")
+		return
+	}
+
+	if len(loans) > 0 {
+		// UpdateLoanBill update loan bill status
+		logger.GetLogger().Info("[Cronjob] Update loan bill statuses")
+		err = serviceCtx.LoanService.UpdateLoanBill(ctx)
+		if err != nil {
+			logger.Fatalf("[Cronjob] Error update loan bills")
+			return
+		}
+	} else {
+		logger.GetLogger().Info("[Cronjob] There's no active loan at the moment")
+	}
+
+	logger.GetLogger().Info("[Cronjob] Cronjob done")
+	return
 }

@@ -1,5 +1,7 @@
 serve-http:
 	@go run main.go http
+run-cron:
+	@go run main.go background
 
 lint:
 	@golangci-lint run -E gofmt

@@ -50,9 +50,26 @@ func (l *loanRepository) CreateLoan(ctx context.Context, loan *models.LoanModel)
 	return id, err
 }
 
+// FetchActiveLoan retrieves loans with an ACTIVE status
+func (l *loanRepository) FetchActiveLoan(ctx context.Context) ([]models.LoanModel, error) {
+	query := `
+		SELECT id, user_id, name, loan_amount, loan_total_amount, outstanding_amount, 
+		       interest_percentage, status, start_date, due_date, loan_terms_per_week
+		FROM loans
+		WHERE status = 'ACTIVE'
+	`
+	var activeLoans []models.LoanModel
+	err := l.DB.SelectContext(ctx, &activeLoans, query)
+	if err != nil {
+		return nil, err
+	}
+	return activeLoans, nil
+}
+
 type LoanRepositoryInterface interface {
 	GetLoanByID(id int64) (*models.LoanModel, error)
 	CreateLoan(ctx context.Context, loan *models.LoanModel) (int64, error)
+	FetchActiveLoan(ctx context.Context) ([]models.LoanModel, error)
 }
 
 func NewLoanRepository(db *mysql.DBMySQL) LoanRepositoryInterface {

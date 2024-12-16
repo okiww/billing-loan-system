@@ -36,7 +36,7 @@ CREATE TABLE loan_bills
     billing_amount       INT,
     billing_total_amount INT,
     billing_number       INT,
-    status               ENUM('PENDING', 'PAID', 'OVERDUE'),
+    status               ENUM('PENDING', 'PAID', 'BILLED', 'OVERDUE'),
     created_at           TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at           TIMESTAMP NULL ON UPDATE CURRENT_TIMESTAMP,
 

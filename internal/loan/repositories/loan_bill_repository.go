@@ -26,8 +26,36 @@ func (l *loanBillRepository) CreateLoanBill(ctx context.Context, loanBill *model
 	return err
 }
 
+func (l *loanBillRepository) UpdateLoanBillStatuses(ctx context.Context) error {
+	query := `
+		UPDATE loan_bills 
+		SET status = CASE
+			WHEN billing_date = CURDATE() THEN 'BILLED'
+			WHEN billing_date < CURDATE() THEN 'OVERDUE'
+		END
+		WHERE loan_id IN (
+			SELECT id 
+			FROM loans 
+			WHERE status = 'ACTIVE'
+		) 
+		AND (billing_date <= CURDATE())
+	`
+
+	_, err := l.DB.ExecContext(ctx, query)
+	if err != nil {
+		logger.GetLogger().WithFields(logrus.Fields{
+			"error": err,
+		}).Error("failed to update loan bill statuses")
+		return err
+	}
+
+	logger.GetLogger().Info("loan bill statuses updated successfully")
+	return nil
+}
+
 type LoanBillRepositoryInterface interface {
 	CreateLoanBill(ctx context.Context, loanBill *models2.LoanBillModel) error
+	UpdateLoanBillStatuses(ctx context.Context) error
 }
 
 func NewLoanBillRepository(db *mysql.DBMySQL) LoanBillRepositoryInterface {
