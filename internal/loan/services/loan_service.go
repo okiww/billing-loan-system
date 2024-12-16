@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"fmt"
+	"github.com/okiww/billing-loan-system/helpers"
 	"github.com/okiww/billing-loan-system/internal/dto"
 	"github.com/okiww/billing-loan-system/internal/loan/repositories"
 	"github.com/okiww/billing-loan-system/internal/models"
@@ -30,11 +31,10 @@ func (l *loanService) CreateLoan(ctx context.Context, request dto.LoanRequest) e
 		InterestPercentage: request.InterestPercentage,
 		Status:             request.Status,
 		StartDate:          time.Now(),
-		DueDate:            time.Now().AddDate(0, 0, int(request.LoanTermsPerWeek*7)),
+		DueDate:            helpers.GenerateLastBillDate(time.Now(), int(request.LoanTermsPerWeek)),
 		LoanTermsPerWeek:   request.LoanTermsPerWeek,
 	}
 
-	fmt.Println(request.LoanTermsPerWeek)
 	id, err := l.loanRepo.CreateLoan(ctx, newLoan)
 	if err != nil {
 		logger.GetLogger().WithFields(logrus.Fields{
@@ -64,7 +64,7 @@ func (l *loanService) generateLoanBills(ctx context.Context, loan *models.LoanMo
 	errChan := make(chan error, loan.LoanTermsPerWeek)
 
 	// Define duration for one week
-	oneWeek := 7 * 24 * time.Hour
+	startBillDate := loan.StartDate
 
 	// Generate loan bills concurrently
 	for week := 1; week <= int(loan.LoanTermsPerWeek); week++ {
@@ -73,12 +73,11 @@ func (l *loanService) generateLoanBills(ctx context.Context, loan *models.LoanMo
 		// calculate weekly amount
 		weeklyAmount := loan.LoanAmount / loan.LoanTermsPerWeek
 		weeklyTotalAmount := loan.LoanTotalAmount / loan.LoanTermsPerWeek
+		// Create the billing date (incremented by one week)
+		billingDate := helpers.GetNextMonday(startBillDate)
 
 		go func(week int) {
 			defer wg.Done() // Decrement the counter when the goroutine finishes
-
-			// Create the billing date (incremented by one week)
-			billingDate := loan.StartDate.Add(time.Duration(week-1) * oneWeek)
 
 			// Create a new LoanBill model
 			loanBill := &models.LoanBillModel{
@@ -99,6 +98,7 @@ func (l *loanService) generateLoanBills(ctx context.Context, loan *models.LoanMo
 				return
 			}
 		}(week)
+		startBillDate = billingDate
 	}
 
 	// Wait for all goroutines to finish
