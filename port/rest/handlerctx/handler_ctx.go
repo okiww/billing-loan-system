@@ -5,5 +5,6 @@ import (
 )
 
 type HandlerCtx struct {
-	LoanHandler handlers.LoanHandlerInterface
+	LoanHandler    handlers.LoanHandlerInterface
+	PaymentHandler handlers.PaymentHandlerInterface
 }

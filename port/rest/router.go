@@ -13,6 +13,11 @@ type Domain struct {
 
 // RegisterRoutes defines all application routes
 func RegisterRoutes(router *mux.Router, h Domain) {
-	loanRouter := router.PathPrefix("/loan").Subrouter()
+	baseRouter := router.PathPrefix("/api/v1").Subrouter()
+
+	loanRouter := baseRouter.PathPrefix("/loan").Subrouter()
 	loanRouter.HandleFunc("/create", h.Domain.LoanHandler.Create).Methods(http.MethodPost)
+
+	paymentRouter := baseRouter.PathPrefix("/payment").Subrouter()
+	paymentRouter.HandleFunc("/create", h.Domain.PaymentHandler.Create).Methods(http.MethodPost)
 }
