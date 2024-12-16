@@ -1,19 +1,18 @@
 package dto
 
 import (
-	"github.com/okiww/billing-loan-system/pkg/errors"
 	"time"
+
+	"github.com/okiww/billing-loan-system/pkg/errors"
 )
 
 type LoanRequest struct {
-	UserID             int       `json:"user_id"`
-	Name               string    `json:"name"`
-	LoanAmount         int32     `json:"loan_amount"`
-	InterestPercentage float64   `json:"interest_percentage"`
-	Status             string    `json:"status"` // ACTIVE, DELINQUENT, CLOSED, PENDING
-	StartDate          time.Time `json:"start_date"`
-	DueDate            time.Time `json:"due_date"`
-	LoanTermsPerWeek   int32     `json:"loan_terms_per_week"`
+	UserID     int       `json:"user_id"`
+	Name       string    `json:"name"`
+	LoanAmount int32     `json:"loan_amount"`
+	Status     string    `json:"status"` // ACTIVE, DELINQUENT, CLOSED, PENDING
+	StartDate  time.Time `json:"start_date"`
+	DueDate    time.Time `json:"due_date"`
 }
 
 type LoanResponse struct {
@@ -46,11 +45,6 @@ func (r *LoanRequest) Validate() error {
 		return errors.New("loan_amount must be greater than 0")
 	}
 
-	// Check InterestPercentage
-	if r.InterestPercentage < 0 || r.InterestPercentage > 100 {
-		return errors.New("interest_percentage must be between 0 and 100")
-	}
-
 	// Check Status
 	validStatuses := map[string]bool{
 		"ACTIVE":     true,
@@ -73,11 +67,6 @@ func (r *LoanRequest) Validate() error {
 	}
 	if r.DueDate.Before(r.StartDate) {
 		return errors.New("due_date must be after start_date")
-	}
-
-	// Check LoanTermsPerWeek
-	if r.LoanTermsPerWeek <= 0 {
-		return errors.New("loan_terms_per_week must be greater than 0")
 	}
 
 	return nil

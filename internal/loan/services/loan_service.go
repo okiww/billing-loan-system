@@ -3,14 +3,15 @@ package services
 import (
 	"context"
 	"fmt"
+	"sync"
+	"time"
+
 	"github.com/okiww/billing-loan-system/helpers"
 	"github.com/okiww/billing-loan-system/internal/dto"
 	"github.com/okiww/billing-loan-system/internal/loan/repositories"
 	"github.com/okiww/billing-loan-system/internal/models"
 	"github.com/okiww/billing-loan-system/pkg/logger"
 	"github.com/sirupsen/logrus"
-	"sync"
-	"time"
 )
 
 type loanService struct {
@@ -21,18 +22,18 @@ type loanService struct {
 func (l *loanService) CreateLoan(ctx context.Context, request dto.LoanRequest) error {
 	logger.Info("[LoanService][CreateLoan]")
 	// Create a new loan
-	loanTotalAmount := int32(float64(request.LoanAmount) + (float64(request.LoanAmount) * request.InterestPercentage / 100))
+	loanTotalAmount := int32(float64(request.LoanAmount) + (float64(request.LoanAmount) * 10 / 100))
 	newLoan := &models.LoanModel{
 		UserID:             int64(request.UserID),
 		Name:               request.Name,
 		LoanAmount:         request.LoanAmount,
 		LoanTotalAmount:    loanTotalAmount,
 		OutstandingAmount:  request.LoanAmount,
-		InterestPercentage: request.InterestPercentage,
+		InterestPercentage: 10, // TODO Should be get From Config
 		Status:             request.Status,
 		StartDate:          time.Now(),
-		DueDate:            helpers.GenerateLastBillDate(time.Now(), int(request.LoanTermsPerWeek)),
-		LoanTermsPerWeek:   request.LoanTermsPerWeek,
+		DueDate:            helpers.GenerateLastBillDate(time.Now(), 4),
+		LoanTermsPerWeek:   4, // TODO should be get from config
 	}
 
 	id, err := l.loanRepo.CreateLoan(ctx, newLoan)

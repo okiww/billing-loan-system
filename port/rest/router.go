@@ -1,9 +1,10 @@
 package rest
 
 import (
+	"net/http"
+
 	"github.com/gorilla/mux"
 	"github.com/okiww/billing-loan-system/port/rest/handlerctx"
-	"net/http"
 )
 
 type Domain struct {
