@@ -40,7 +40,7 @@ func runCronJob() {
 	// Create a new cron scheduler
 	c := cron.New(cron.WithLocation(time.Local))
 
-	_, err := c.AddFunc("*/1 * * * *", myCronJob) // Should change to run every monday at 00:00
+	_, err := c.AddFunc("*/1 * * * *", GenerateBillPaymentEveryWeek) // Should change to run every monday at 00:00
 	if err != nil {
 		logger.GetLogger().Fatal("Error adding cron job:", err)
 	}
@@ -54,7 +54,7 @@ func runCronJob() {
 }
 
 // This function will be called by the cron job
-func myCronJob() {
+func GenerateBillPaymentEveryWeek() {
 	logger.GetLogger().Info("[Cronjob] Running cron for update bills")
 	cfg := configs.InitConfig()
 	// initial connection to database
@@ -89,6 +89,20 @@ func myCronJob() {
 			logger.Fatalf("[Cronjob] Error update loan bills")
 			return
 		}
+
+		logger.GetLogger().Info("[Cronjob] Count loan bill overdue by loan id")
+		for _, v := range loans {
+			total, err := serviceCtx.LoanService.CountLoanBillOverdueStatusesByID(ctx, int32(v.ID))
+			if err != nil {
+				logger.Fatalf("[Cronjob] Error Count loan bill overdue by loan id")
+				return
+			}
+
+			if total > 1 {
+				// Update user is_delinquent true
+			}
+		}
+
 	} else {
 		logger.GetLogger().Info("[Cronjob] There's no active loan at the moment")
 	}

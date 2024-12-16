@@ -53,13 +53,38 @@ func (l *loanBillRepository) UpdateLoanBillStatuses(ctx context.Context) error {
 	return nil
 }
 
+func (l *loanBillRepository) GetTotalLoanBillOverdueByLoanID(ctx context.Context, id int32) (int, error) {
+	query := `
+		SELECT COUNT(lb.id) AS overdue_count
+		FROM loan_bills lb
+		JOIN loans l ON lb.loan_id = l.id
+		WHERE l.id = ? AND l.status = 'ACTIVE' AND lb.status = 'OVERDUE'
+	`
+
+	var count int
+	err := l.DB.QueryRowContext(ctx, query, id).Scan(&count)
+	if err != nil {
+		logger.GetLogger().WithFields(logrus.Fields{
+			"error": err,
+			"id":    id,
+		}).Error("failed to get count loan overdu by id")
+		return 0, err
+	}
+
+	return count, nil
+}
+
 type LoanBillRepositoryInterface interface {
 	CreateLoanBill(ctx context.Context, loanBill *models2.LoanBillModel) error
 	UpdateLoanBillStatuses(ctx context.Context) error
+	GetTotalLoanBillOverdueByLoanID(ctx context.Context, id int32) (int, error)
 }
 
 func NewLoanBillRepository(db *mysql.DBMySQL) LoanBillRepositoryInterface {
-	return &loanBillRepository{
-		db,
-	}
+	repoLock.Do(func() {
+		repoLoanBill = &loanBillRepository{
+			db,
+		}
+	})
+	return repoLoanBill
 }

@@ -48,3 +48,32 @@ func (mr *MockLoanBillRepositoryInterfaceMockRecorder) CreateLoanBill(ctx, loanB
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateLoanBill", reflect.TypeOf((*MockLoanBillRepositoryInterface)(nil).CreateLoanBill), ctx, loanBill)
 }
+
+// GetTotalLoanBillOverdueByLoanID mocks base method.
+func (m *MockLoanBillRepositoryInterface) GetTotalLoanBillOverdueByLoanID(ctx context.Context, id int32) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetTotalLoanBillOverdueByLoanID", ctx, id)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetTotalLoanBillOverdueByLoanID indicates an expected call of GetTotalLoanBillOverdueByLoanID.
+func (mr *MockLoanBillRepositoryInterfaceMockRecorder) GetTotalLoanBillOverdueByLoanID(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTotalLoanBillOverdueByLoanID", reflect.TypeOf((*MockLoanBillRepositoryInterface)(nil).GetTotalLoanBillOverdueByLoanID), ctx, id)
+}
+
+// UpdateLoanBillStatuses mocks base method.
+func (m *MockLoanBillRepositoryInterface) UpdateLoanBillStatuses(ctx context.Context) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateLoanBillStatuses", ctx)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateLoanBillStatuses indicates an expected call of UpdateLoanBillStatuses.
+func (mr *MockLoanBillRepositoryInterfaceMockRecorder) UpdateLoanBillStatuses(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateLoanBillStatuses", reflect.TypeOf((*MockLoanBillRepositoryInterface)(nil).UpdateLoanBillStatuses), ctx)
+}

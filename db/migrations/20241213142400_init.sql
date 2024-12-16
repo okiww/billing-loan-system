@@ -18,7 +18,7 @@ CREATE TABLE loans
     loan_total_amount   INT,
     outstanding_amount  INT,
     interest_percentage DECIMAL,
-    status              ENUM('ACTIVE', 'DELINQUENT', 'CLOSED'),
+    status              ENUM('ACTIVE', 'CLOSED'),
     start_date          DATE,
     due_date            DATE,
     loan_terms_per_week INTEGER,

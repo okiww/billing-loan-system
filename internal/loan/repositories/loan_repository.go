@@ -3,16 +3,9 @@ package repositories
 import (
 	"context"
 	"github.com/okiww/billing-loan-system/internal/loan/models"
-	"sync"
-
 	mysql "github.com/okiww/billing-loan-system/pkg/db"
 	"github.com/okiww/billing-loan-system/pkg/logger"
 	"github.com/sirupsen/logrus"
-)
-
-var (
-	repo     LoanRepositoryInterface
-	repoLock sync.Once
 )
 
 type loanRepository struct {
@@ -74,9 +67,9 @@ type LoanRepositoryInterface interface {
 
 func NewLoanRepository(db *mysql.DBMySQL) LoanRepositoryInterface {
 	repoLock.Do(func() {
-		repo = &loanRepository{
+		repoLoan = &loanRepository{
 			db,
 		}
 	})
-	return repo
+	return repoLoan
 }

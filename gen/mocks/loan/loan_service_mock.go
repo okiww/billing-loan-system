@@ -10,6 +10,7 @@ import (
 
 	gomock "github.com/golang/mock/gomock"
 	dto "github.com/okiww/billing-loan-system/internal/dto"
+	models "github.com/okiww/billing-loan-system/internal/loan/models"
 )
 
 // MockLoanServiceInterface is a mock of LoanServiceInterface interface.
@@ -35,6 +36,21 @@ func (m *MockLoanServiceInterface) EXPECT() *MockLoanServiceInterfaceMockRecorde
 	return m.recorder
 }
 
+// CountLoanBillOverdueStatusesByID mocks base method.
+func (m *MockLoanServiceInterface) CountLoanBillOverdueStatusesByID(ctx context.Context, id int32) (int32, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CountLoanBillOverdueStatusesByID", ctx, id)
+	ret0, _ := ret[0].(int32)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CountLoanBillOverdueStatusesByID indicates an expected call of CountLoanBillOverdueStatusesByID.
+func (mr *MockLoanServiceInterfaceMockRecorder) CountLoanBillOverdueStatusesByID(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountLoanBillOverdueStatusesByID", reflect.TypeOf((*MockLoanServiceInterface)(nil).CountLoanBillOverdueStatusesByID), ctx, id)
+}
+
 // CreateLoan mocks base method.
 func (m *MockLoanServiceInterface) CreateLoan(ctx context.Context, request dto.LoanRequest) error {
 	m.ctrl.T.Helper()
@@ -47,4 +63,33 @@ func (m *MockLoanServiceInterface) CreateLoan(ctx context.Context, request dto.L
 func (mr *MockLoanServiceInterfaceMockRecorder) CreateLoan(ctx, request interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateLoan", reflect.TypeOf((*MockLoanServiceInterface)(nil).CreateLoan), ctx, request)
+}
+
+// GetAllActiveLoan mocks base method.
+func (m *MockLoanServiceInterface) GetAllActiveLoan(ctx context.Context) ([]models.LoanModel, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAllActiveLoan", ctx)
+	ret0, _ := ret[0].([]models.LoanModel)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAllActiveLoan indicates an expected call of GetAllActiveLoan.
+func (mr *MockLoanServiceInterfaceMockRecorder) GetAllActiveLoan(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllActiveLoan", reflect.TypeOf((*MockLoanServiceInterface)(nil).GetAllActiveLoan), ctx)
+}
+
+// UpdateLoanBill mocks base method.
+func (m *MockLoanServiceInterface) UpdateLoanBill(ctx context.Context) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateLoanBill", ctx)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateLoanBill indicates an expected call of UpdateLoanBill.
+func (mr *MockLoanServiceInterfaceMockRecorder) UpdateLoanBill(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateLoanBill", reflect.TypeOf((*MockLoanServiceInterface)(nil).UpdateLoanBill), ctx)
 }

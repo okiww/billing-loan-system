@@ -50,6 +50,21 @@ func (mr *MockLoanRepositoryInterfaceMockRecorder) CreateLoan(ctx, loan interfac
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateLoan", reflect.TypeOf((*MockLoanRepositoryInterface)(nil).CreateLoan), ctx, loan)
 }
 
+// FetchActiveLoan mocks base method.
+func (m *MockLoanRepositoryInterface) FetchActiveLoan(ctx context.Context) ([]models.LoanModel, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FetchActiveLoan", ctx)
+	ret0, _ := ret[0].([]models.LoanModel)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FetchActiveLoan indicates an expected call of FetchActiveLoan.
+func (mr *MockLoanRepositoryInterfaceMockRecorder) FetchActiveLoan(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchActiveLoan", reflect.TypeOf((*MockLoanRepositoryInterface)(nil).FetchActiveLoan), ctx)
+}
+
 // GetLoanByID mocks base method.
 func (m *MockLoanRepositoryInterface) GetLoanByID(id int64) (*models.LoanModel, error) {
 	m.ctrl.T.Helper()

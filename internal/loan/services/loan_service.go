@@ -80,8 +80,20 @@ func (l *loanService) GetAllActiveLoan(ctx context.Context) ([]models.LoanModel,
 	return loans, nil
 }
 
+func (l *loanService) CountLoanBillOverdueStatusesByID(ctx context.Context, id int32) (int32, error) {
+	logger.GetLogger().Info("[LoanService][CountLoanBillOverdueStatuses]")
+	total, err := l.loanBillRepo.GetTotalLoanBillOverdueByLoanID(ctx, id)
+	if err != nil {
+		logger.GetLogger().Errorf("[LoanService][CountLoanBillOverdueStatuses] Error when get total loan bill overdue with err: %v", err)
+		return 0, err
+	}
+
+	return int32(total), nil
+}
+
 // generateLoanBills generates weekly loan bills based on the loan information
 func (l *loanService) generateLoanBills(ctx context.Context, loan *models.LoanModel, id int64) error {
+	logger.GetLogger().Info("[LoanService][generateLoanBills] Start")
 	// Use a wait group to wait for all goroutines to complete
 	var wg sync.WaitGroup
 
@@ -138,7 +150,7 @@ func (l *loanService) generateLoanBills(ctx context.Context, loan *models.LoanMo
 			return err
 		}
 	}
-
+	logger.GetLogger().Info("[LoanService][generateLoanBills] Done")
 	return nil
 }
 
@@ -146,6 +158,7 @@ type LoanServiceInterface interface {
 	GetAllActiveLoan(ctx context.Context) ([]models.LoanModel, error)
 	CreateLoan(ctx context.Context, request dto.LoanRequest) error
 	UpdateLoanBill(ctx context.Context) error
+	CountLoanBillOverdueStatusesByID(ctx context.Context, id int32) (int32, error)
 }
 
 func NewLoanService(loanRepo repositories.LoanRepositoryInterface, loanBillRepo repositories.LoanBillRepositoryInterface) LoanServiceInterface {
