@@ -3,10 +3,11 @@ package services
 import (
 	"context"
 	"fmt"
-	loan_mock "github.com/okiww/billing-loan-system/gen/mocks/loan"
-	"github.com/okiww/billing-loan-system/internal/dto"
 	"testing"
 	"time"
+
+	loan_mock "github.com/okiww/billing-loan-system/gen/mocks/loan"
+	"github.com/okiww/billing-loan-system/internal/dto"
 
 	"github.com/golang/mock/gomock"
 

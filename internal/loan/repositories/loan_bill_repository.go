@@ -41,12 +41,9 @@ func (l *loanBillRepository) UpdateLoanBillStatuses(ctx context.Context) error {
 		) 
 		AND (billing_date <= CURDATE())
 	`
-
 	_, err := l.DB.ExecContext(ctx, query)
 	if err != nil {
-		logger.GetLogger().WithFields(logrus.Fields{
-			"error": err,
-		}).Error("failed to update loan bill statuses")
+		logger.GetLogger().Error(err.Error())
 		return err
 	}
 
@@ -88,7 +85,7 @@ func NewLoanBillRepository(db *mysql.DBMySQL) LoanBillRepositoryInterface {
 		}
 	}
 
-	repoLock.Do(func() {
+	repoLoanBillLock.Do(func() {
 		repoLoanBill = &loanBillRepository{
 			db,
 		}

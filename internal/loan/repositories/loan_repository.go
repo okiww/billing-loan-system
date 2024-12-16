@@ -3,6 +3,7 @@ package repositories
 import (
 	"context"
 	"fmt"
+
 	"github.com/okiww/billing-loan-system/helpers"
 	"github.com/okiww/billing-loan-system/internal/loan/models"
 	mysql "github.com/okiww/billing-loan-system/pkg/db"
@@ -76,7 +77,7 @@ func NewLoanRepository(db *mysql.DBMySQL) LoanRepositoryInterface {
 		}
 	}
 
-	repoLock.Do(func() {
+	repoLoanLock.Do(func() {
 		repoLoan = &loanRepository{
 			db,
 		}

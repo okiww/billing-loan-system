@@ -3,15 +3,16 @@ package repositories
 import (
 	"context"
 	"database/sql"
+	"reflect"
+	"regexp"
+	"testing"
+	"time"
+
 	"github.com/okiww/billing-loan-system/internal/loan/models"
 	mysql "github.com/okiww/billing-loan-system/pkg/db"
 	"github.com/okiww/billing-loan-system/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	sqlmock "github.com/zhashkevych/go-sqlxmock"
-	"reflect"
-	"regexp"
-	"testing"
-	"time"
 )
 
 func TestGetLoanByID(t *testing.T) {

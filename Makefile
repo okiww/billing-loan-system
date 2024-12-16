@@ -6,8 +6,6 @@ run-cron:
 test:
 	./coverage.sh;
 
-lint:
-	@golangci-lint run -E gofmt
 
 format:
 	@$(MAKE) fmt

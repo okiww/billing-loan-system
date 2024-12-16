@@ -3,9 +3,10 @@ package services
 import (
 	"context"
 	"fmt"
-	"github.com/okiww/billing-loan-system/internal/loan/models"
 	"sync"
 	"time"
+
+	"github.com/okiww/billing-loan-system/internal/loan/models"
 
 	"github.com/okiww/billing-loan-system/helpers"
 	"github.com/okiww/billing-loan-system/internal/dto"

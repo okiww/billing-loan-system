@@ -2,14 +2,15 @@ package repositories
 
 import (
 	"context"
+	"regexp"
+	"testing"
+	"time"
+
 	"github.com/okiww/billing-loan-system/internal/loan/models"
 	mysql "github.com/okiww/billing-loan-system/pkg/db"
 	"github.com/okiww/billing-loan-system/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	sqlmock "github.com/zhashkevych/go-sqlxmock"
-	"regexp"
-	"testing"
-	"time"
 )
 
 func TestCreateLoanBill(t *testing.T) {

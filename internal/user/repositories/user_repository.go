@@ -4,10 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"sync"
+
 	"github.com/okiww/billing-loan-system/helpers"
 	"github.com/okiww/billing-loan-system/internal/user/models"
 	mysql "github.com/okiww/billing-loan-system/pkg/db"
-	"sync"
 )
 
 var (
@@ -37,7 +38,7 @@ func NewUserRepository(db *mysql.DBMySQL) UserRepositoryInterface {
 // UpdateUserToDelinquent updates the is_delinquent field of a user to true.
 func (u *userRepository) UpdateUserToDelinquent(ctx context.Context, userID int32) error {
 	query := `
-		UPDATE user
+		UPDATE users
 		SET is_delinquent = 1, updated_at = CURRENT_TIMESTAMP
 		WHERE id = ?
 	`
@@ -53,7 +54,7 @@ func (u *userRepository) UpdateUserToDelinquent(ctx context.Context, userID int3
 func (u *userRepository) GetUserByID(ctx context.Context, userID int32) (*models.UserModel, error) {
 	query := `
 		SELECT id, name, is_delinquent
-		FROM user
+		FROM users
 		WHERE id = ?
 	`
 

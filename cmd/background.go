@@ -5,14 +5,17 @@ package cmd
 
 import (
 	"context"
+	"time"
+
 	"github.com/okiww/billing-loan-system/configs"
 	"github.com/okiww/billing-loan-system/internal/ctx/servicectx"
 	"github.com/okiww/billing-loan-system/internal/loan/repositories"
-	"github.com/okiww/billing-loan-system/internal/loan/services"
+	loanService "github.com/okiww/billing-loan-system/internal/loan/services"
+	userRepo "github.com/okiww/billing-loan-system/internal/user/repositories"
+	userService "github.com/okiww/billing-loan-system/internal/user/services"
 	mysql "github.com/okiww/billing-loan-system/pkg/db"
 	"github.com/okiww/billing-loan-system/pkg/logger"
 	"github.com/robfig/cron/v3"
-	"time"
 
 	"github.com/spf13/cobra"
 )
@@ -40,22 +43,6 @@ func runCronJob() {
 	// Create a new cron scheduler
 	c := cron.New(cron.WithLocation(time.Local))
 
-	_, err := c.AddFunc("*/1 * * * *", GenerateBillPaymentEveryWeek) // Should change to run every monday at 00:00
-	if err != nil {
-		logger.GetLogger().Fatal("Error adding cron job:", err)
-	}
-
-	// Start the cron scheduler in the background
-	c.Start()
-
-	// Block main goroutine so that the program continues running
-	// It will keep running indefinitely, and cron jobs will run as per the schedule
-	select {}
-}
-
-// This function will be called by the cron job
-func GenerateBillPaymentEveryWeek() {
-	logger.GetLogger().Info("[Cronjob] Running cron for update bills")
 	cfg := configs.InitConfig()
 	// initial connection to database
 	dbInit := mysql.InitDB(&cfg.DB)
@@ -67,12 +54,30 @@ func GenerateBillPaymentEveryWeek() {
 	// initial domain context
 	loanRepository := repositories.NewLoanRepository(db)
 	loanBillRepository := repositories.NewLoanBillRepository(db)
+	userRepository := userRepo.NewUserRepository(db)
 
 	serviceCtx := servicectx.ServiceCtx{
-		LoanService: services.NewLoanService(loanRepository, loanBillRepository),
+		LoanService: loanService.NewLoanService(loanRepository, loanBillRepository),
+		UserService: userService.NewUserService(userRepository),
 	}
 
 	ctx := context.Background()
+
+	_, err = c.AddFunc("*/1 * * * *", func() {
+		GenerateBillPaymentEveryWeek(ctx, serviceCtx)
+	}) // Should change to run every monday at 00:00
+	if err != nil {
+		logger.GetLogger().Fatal("Error adding cron job:", err)
+	}
+
+	// Start the cron scheduler in the background
+	c.Start()
+	select {}
+}
+
+// This function will be called by the cron job
+func GenerateBillPaymentEveryWeek(ctx context.Context, serviceCtx servicectx.ServiceCtx) {
+	logger.GetLogger().Info("[Cronjob] Running cron for update bills")
 
 	logger.GetLogger().Info("[Cronjob] Fetch all active loan")
 	loans, err := serviceCtx.LoanService.GetAllActiveLoan(ctx)
@@ -99,7 +104,11 @@ func GenerateBillPaymentEveryWeek() {
 			}
 
 			if total > 1 {
-				// Update user is_delinquent true
+				err := serviceCtx.UserService.UpdateUserToDelinquent(ctx, int32(v.UserID))
+				if err != nil {
+					logger.Fatalf("[Cronjob] Error Update User To Delinquent")
+					return
+				}
 			}
 		}
 

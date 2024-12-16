@@ -4,13 +4,14 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"reflect"
+	"regexp"
+	"testing"
+
 	"github.com/okiww/billing-loan-system/internal/user/models"
 	mysql "github.com/okiww/billing-loan-system/pkg/db"
 	"github.com/stretchr/testify/assert"
 	sqlmock "github.com/zhashkevych/go-sqlxmock"
-	"reflect"
-	"regexp"
-	"testing"
 )
 
 func TestUpdateUserToDelinquent(t *testing.T) {

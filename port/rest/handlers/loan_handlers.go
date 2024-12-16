@@ -30,6 +30,18 @@ func (l *loanHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// validate users isDelinquent or not
+	isDelinquent, err := l.ServiceCtx.UserService.IsDelinquent(context.Background(), int32(request.UserID))
+	if err != nil {
+		response.NewJSONResponse().SetError(errors.ErrorInternalServer).SetMessage(err.Error()).WriteResponse(w)
+		return
+	}
+
+	if isDelinquent {
+		response.NewJSONResponse().SetError(errors.ErrorForbiddenResource).SetMessage("Couldn't create loan because user is delinquent").WriteResponse(w)
+		return
+	}
+
 	err = l.ServiceCtx.LoanService.CreateLoan(context.Background(), request)
 	if err != nil {
 		response.NewJSONResponse().SetError(errors.ErrorInternalServer).SetMessage(err.Error()).WriteResponse(w)
