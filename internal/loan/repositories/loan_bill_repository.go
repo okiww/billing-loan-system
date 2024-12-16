@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"github.com/okiww/billing-loan-system/helpers"
 	models2 "github.com/okiww/billing-loan-system/internal/loan/models"
 	mysql "github.com/okiww/billing-loan-system/pkg/db"
 	"github.com/okiww/billing-loan-system/pkg/logger"
@@ -81,6 +82,12 @@ type LoanBillRepositoryInterface interface {
 }
 
 func NewLoanBillRepository(db *mysql.DBMySQL) LoanBillRepositoryInterface {
+	if helpers.IsTestEnv() { // Skip singleton in tests
+		return &loanBillRepository{
+			db,
+		}
+	}
+
 	repoLock.Do(func() {
 		repoLoanBill = &loanBillRepository{
 			db,

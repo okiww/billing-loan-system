@@ -266,3 +266,121 @@ func TestCreateLoan(t *testing.T) {
 		})
 	}
 }
+func TestFetchActiveLoan(t *testing.T) {
+	// Table-driven test cases
+	db, mock, err := sqlmock.Newx()
+	assert.NoError(t, err)
+	defer db.Close()
+
+	mockDB := &mysql.DBMySQL{DB: db}
+	repo := NewLoanRepository(mockDB)
+
+	// Test cases
+	tests := []struct {
+		name    string
+		s       LoanRepositoryInterface
+		want    []models.LoanModel
+		wantErr bool
+		mock    func()
+	}{
+		{
+			name: "Success - Active Loans Found",
+			s:    repo,
+			want: []models.LoanModel{
+				{
+					ID:                 1,
+					UserID:             123,
+					Name:               "Test Loan 1",
+					LoanAmount:         1000,
+					LoanTotalAmount:    1100,
+					OutstandingAmount:  1100,
+					InterestPercentage: 10,
+					Status:             "ACTIVE",
+				},
+				{
+					ID:                 2,
+					UserID:             124,
+					Name:               "Test Loan 2",
+					LoanAmount:         2000,
+					LoanTotalAmount:    2200,
+					OutstandingAmount:  2200,
+					InterestPercentage: 12,
+					Status:             "ACTIVE",
+				},
+			},
+			wantErr: false,
+			mock: func() {
+				mock.ExpectQuery(regexp.QuoteMeta(`
+					SELECT id, user_id, name, loan_amount, loan_total_amount, outstanding_amount, 
+		       			interest_percentage, status, start_date, due_date, loan_terms_per_week
+					FROM loans
+					WHERE status = 'ACTIVE'
+				`)).
+					WillReturnRows(sqlmock.NewRows([]string{
+						"id", "user_id", "name", "loan_amount", "loan_total_amount", "outstanding_amount",
+						"interest_percentage", "status",
+					}).
+						AddRow(1, 123, "Test Loan 1", 1000, 1100, 1100, 10, "ACTIVE").
+						AddRow(2, 124, "Test Loan 2", 2000, 2200, 2200, 12, "ACTIVE"),
+					)
+			},
+		},
+		{
+			name:    "No Active Loans Found",
+			s:       repo,
+			want:    nil,
+			wantErr: false,
+			mock: func() {
+				mock.ExpectQuery(regexp.QuoteMeta(`
+					SELECT id, user_id, name, loan_amount, loan_total_amount, outstanding_amount, 
+		       			interest_percentage, status, start_date, due_date, loan_terms_per_week
+					FROM loans
+					WHERE status = 'ACTIVE'
+				`)).
+					WillReturnRows(sqlmock.NewRows([]string{
+						"id", "user_id", "name", "loan_amount", "loan_total_amount", "outstanding_amount",
+						"interest_percentage", "status",
+					}))
+			},
+		},
+		{
+			name:    "Database Error",
+			s:       repo,
+			want:    nil,
+			wantErr: true,
+			mock: func() {
+				mock.ExpectQuery(regexp.QuoteMeta(`
+					SELECT id, user_id, name, loan_amount, loan_total_amount, outstanding_amount, 
+		       			interest_percentage, status, start_date, due_date, loan_terms_per_week
+					FROM loans
+					WHERE status = 'ACTIVE'
+				`)).
+					WillReturnError(errors.New("db error"))
+			},
+		},
+	}
+
+	// Run each test case
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.mock()
+
+			got, err := tt.s.FetchActiveLoan(context.Background())
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("FetchActiveLoan() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if !tt.wantErr && !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("FetchActiveLoan() got = %v, want %v", got, tt.want)
+			}
+
+			// Validate expectations
+			err = mock.ExpectationsWereMet()
+			if err != nil {
+				t.Errorf("Expectations were not met: %v", err)
+			}
+		})
+	}
+}

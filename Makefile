@@ -3,6 +3,9 @@ serve-http:
 run-cron:
 	@go run main.go background
 
+test:
+	./coverage.sh;
+
 lint:
 	@golangci-lint run -E gofmt
 

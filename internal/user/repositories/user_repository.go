@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/okiww/billing-loan-system/helpers"
 	"github.com/okiww/billing-loan-system/internal/user/models"
 	mysql "github.com/okiww/billing-loan-system/pkg/db"
 	"sync"
@@ -19,6 +20,12 @@ type userRepository struct {
 }
 
 func NewUserRepository(db *mysql.DBMySQL) UserRepositoryInterface {
+	if helpers.IsTestEnv() { // Skip singleton in tests
+		return &userRepository{
+			db,
+		}
+	}
+
 	repoLock.Do(func() {
 		repo = &userRepository{
 			db,
@@ -50,12 +57,8 @@ func (u *userRepository) GetUserByID(ctx context.Context, userID int32) (*models
 		WHERE id = ?
 	`
 
-	var user models.UserModel
-	err := u.DB.QueryRowContext(ctx, query, userID).Scan(
-		&user.ID,
-		&user.Name,
-		&user.IsDelinquent,
-	)
+	user := &models.UserModel{}
+	err := u.DB.GetContext(ctx, user, query, userID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil // No user found with the given ID
@@ -63,7 +66,7 @@ func (u *userRepository) GetUserByID(ctx context.Context, userID int32) (*models
 		return nil, fmt.Errorf("error retrieving user by ID: %w", err)
 	}
 
-	return &user, nil
+	return user, nil
 }
 
 type UserRepositoryInterface interface {
