@@ -3,7 +3,7 @@ package services
 import (
 	"context"
 	"fmt"
-	models2 "github.com/okiww/billing-loan-system/internal/loan/models"
+	"github.com/okiww/billing-loan-system/internal/loan/models"
 	"sync"
 	"time"
 
@@ -23,7 +23,7 @@ func (l *loanService) CreateLoan(ctx context.Context, request dto.LoanRequest) e
 	logger.Info("[LoanService][CreateLoan]")
 	// Create a new loan
 	loanTotalAmount := int32(float64(request.LoanAmount) + (float64(request.LoanAmount) * 10 / 100))
-	newLoan := &models2.LoanModel{
+	newLoan := &models.LoanModel{
 		UserID:             int64(request.UserID),
 		Name:               request.Name,
 		LoanAmount:         request.LoanAmount,
@@ -57,7 +57,7 @@ func (l *loanService) CreateLoan(ctx context.Context, request dto.LoanRequest) e
 }
 
 // generateLoanBills generates weekly loan bills based on the loan information
-func (l *loanService) generateLoanBills(ctx context.Context, loan *models2.LoanModel, id int64) error {
+func (l *loanService) generateLoanBills(ctx context.Context, loan *models.LoanModel, id int64) error {
 	// Use a wait group to wait for all goroutines to complete
 	var wg sync.WaitGroup
 
@@ -81,7 +81,7 @@ func (l *loanService) generateLoanBills(ctx context.Context, loan *models2.LoanM
 			defer wg.Done() // Decrement the counter when the goroutine finishes
 
 			// Create a new LoanBill model
-			loanBill := &models2.LoanBillModel{
+			loanBill := &models.LoanBillModel{
 				LoanID:             id,
 				BillingDate:        billingDate,
 				BillingAmount:      weeklyAmount,
