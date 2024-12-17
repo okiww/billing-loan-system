@@ -23,6 +23,8 @@ This is a Go project that utilizes various tools and libraries including Go 1.23
   - Validation loan, loan bill and amount
   - Update loans status and bill status under Trx
   - Update payment status to **SUCCESS** if success, and **FAILED** if has errors
+  - Count total overdue
+    - if has less than 2 & user is delinquent, update user to is not delinquent
 
 ## Setup & Installation
 
