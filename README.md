@@ -31,13 +31,13 @@ This is a Go project that utilizes various tools and libraries including Go 1.23
 ### 1. Clone the project
 
 ```bash
-  git clone https://github.com/poscompany/gprc-contract
+  git clone https://github.com/okiww/billing-loan-system.git
 ```
 
 ### 2. Go to the project directory
 
 ```bash
-  cd <your-project-directory>
+  cd billing-loan-system
 ```
 
 ### 3. Install dependencies
