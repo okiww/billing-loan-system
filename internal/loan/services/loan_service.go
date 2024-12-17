@@ -29,7 +29,7 @@ func (l *loanService) CreateLoan(ctx context.Context, request dto.LoanRequest) e
 		Name:               request.Name,
 		LoanAmount:         request.LoanAmount,
 		LoanTotalAmount:    loanTotalAmount,
-		OutstandingAmount:  request.LoanAmount,
+		OutstandingAmount:  loanTotalAmount,
 		InterestPercentage: 10, // TODO Should be get From Config
 		Status:             request.Status,
 		StartDate:          time.Now(),

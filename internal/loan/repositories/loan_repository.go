@@ -4,13 +4,12 @@ import (
 	"context"
 	"fmt"
 	"github.com/jmoiron/sqlx"
-	"time"
-
 	"github.com/okiww/billing-loan-system/helpers"
 	"github.com/okiww/billing-loan-system/internal/loan/models"
 	mysql "github.com/okiww/billing-loan-system/pkg/db"
 	"github.com/okiww/billing-loan-system/pkg/logger"
 	"github.com/sirupsen/logrus"
+	"time"
 )
 
 type loanRepository struct {
@@ -75,6 +74,7 @@ func (l *loanRepository) UpdateLoanAndLoanBillsInTx(ctx context.Context, loanID,
 			loanBillID,
 		)
 		if err != nil {
+			logger.GetLogger().Errorf("[LoanRepository][UpdateLoanAndLoanBillsInTx] Error UpdateBilledLoanBillToPaid with err: %v", err)
 			return err
 		}
 
@@ -85,6 +85,7 @@ func (l *loanRepository) UpdateLoanAndLoanBillsInTx(ctx context.Context, loanID,
 			amount,
 		)
 		if err != nil {
+			logger.GetLogger().Errorf("[LoanRepository][UpdateOutStandingAmountAndStatus] Error UpdateBilledLoanBillToPaid with err: %v", err)
 			return err
 		}
 		return nil
@@ -101,7 +102,7 @@ func (l *loanRepository) UpdateBilledLoanBillToPaid(ctx context.Context, tx *sql
 	query := `
 		UPDATE loan_bills SET status = ?, updated_at = ? WHERE id = ?
 	`
-	_, err := tx.ExecContext(ctx, query, time.Now(), models.StatusPaid, id)
+	_, err := tx.ExecContext(ctx, query, models.StatusPaid, time.Now(), id)
 	if err != nil {
 		return err
 	}
@@ -110,11 +111,11 @@ func (l *loanRepository) UpdateBilledLoanBillToPaid(ctx context.Context, tx *sql
 
 func (l *loanRepository) UpdateOutStandingAmountAndStatus(ctx context.Context, tx *sqlx.Tx, id, amount int) error {
 	query := `
-		UPDATE payments
+		UPDATE loans
 		SET 
-			total_amount = total_amount - ?,
+			outstanding_amount = outstanding_amount - ?,
 			status = CASE
-				WHEN total_amount - ? = 0 THEN ?
+				WHEN outstanding_amount - ? = 0 THEN ?
 				ELSE status
     		END
 		WHERE id = ?;

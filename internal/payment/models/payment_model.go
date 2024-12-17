@@ -1,13 +1,12 @@
 package models
 
 type Payment struct {
-	ID          int    `json:"id"`
-	UserID      int    `json:"user_id"`
-	LoanID      int    `json:"loan_id"`
-	LoanBillID  int    `json:"loan_bill_id"`
-	Amount      int    `json:"amount"`
-	TotalAmount int    `json:"total_amount"`
-	Status      string `json:"status"`
+	ID         int    `json:"id"`
+	UserID     int    `json:"user_id"`
+	LoanID     int    `json:"loan_id"`
+	LoanBillID int    `json:"loan_bill_id"`
+	Amount     int    `json:"amount"`
+	Status     string `json:"status"`
 }
 
 const (

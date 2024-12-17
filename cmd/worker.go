@@ -4,9 +4,15 @@ Copyright © 2024 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/okiww/billing-loan-system/configs"
+	"github.com/okiww/billing-loan-system/internal/ctx/servicectx"
+	loanRepo "github.com/okiww/billing-loan-system/internal/loan/repositories"
 	"github.com/okiww/billing-loan-system/internal/payment/models"
+	paymentRepo "github.com/okiww/billing-loan-system/internal/payment/repositories"
+	"github.com/okiww/billing-loan-system/internal/payment/services"
+	mysql "github.com/okiww/billing-loan-system/pkg/db"
 	"github.com/okiww/billing-loan-system/pkg/logger"
 	"github.com/okiww/billing-loan-system/pkg/mq"
 	"os"
@@ -37,6 +43,15 @@ func init() {
 
 func InitWorker() {
 	cfg := configs.InitConfig()
+
+	// initial connection to database
+	dbInit := mysql.InitDB(&cfg.DB)
+	db, err := dbInit.Connect()
+	if err != nil {
+		logger.Fatalf("failed to connect db")
+	}
+
+	// initial connection to rabbitMQ
 	rabbitMQ, err := mq.NewRabbitMQ(cfg.RabbitMQ.Dsn)
 	if err != nil {
 		logger.GetLogger().Fatalf("failed to connect to RabbitMQ: %v", err)
@@ -48,6 +63,14 @@ func InitWorker() {
 	if err != nil {
 		logger.GetLogger().Fatalf("failed to declare queue %s: %v", cfg.RabbitMQ.QueueName, err)
 		return
+	}
+
+	// initial domain context
+	loanRepository := loanRepo.NewLoanRepository(db)
+	paymentRepository := paymentRepo.NewPaymentRepository(db)
+
+	serviceCtx := servicectx.ServiceCtx{
+		PaymentService: services.NewPaymentService(paymentRepository, loanRepository),
 	}
 
 	messages, err := rabbitMQ.ConsumeMessages(cfg.RabbitMQ.QueueName)
@@ -66,7 +89,7 @@ func InitWorker() {
 	go func() {
 		for msg := range messages {
 			logger.GetLogger().Infof("Received message: %s", string(msg.Body))
-			err := processMessage(msg.Body)
+			err := processPayment(context.Background(), &serviceCtx, msg.Body)
 			if err != nil {
 				logger.GetLogger().Errorf("Failed to process message: %v", err)
 			} else {
@@ -80,16 +103,22 @@ func InitWorker() {
 	logger.GetLogger().Info("Graceful shutdown: worker stopping...")
 }
 
-// processMessage processes the incoming RabbitMQ message body
-func processMessage(body []byte) error {
-	var payments []models.Payment
+// processPayment processes the incoming RabbitMQ message body for payment
+func processPayment(ctx context.Context, serviceCtx *servicectx.ServiceCtx, body []byte) error {
+	var payments models.Payment
 	err := json.Unmarshal(body, &payments)
 	if err != nil {
 		logger.GetLogger().Errorf("Failed to unmarshal message: %v", err)
 		return err
 	}
 
+	err = serviceCtx.PaymentService.ProcessUpdatePayment(ctx, payments)
+	if err != nil {
+		logger.GetLogger().Errorf("Failed to process payment: %v", err)
+		return err
+	}
+
 	// Log the received array of Payment structs
-	logger.GetLogger().Infof("Received Payments: %+v", payments)
+	logger.GetLogger().Infof("Done Process Payment: %+v", payments)
 	return nil
 }

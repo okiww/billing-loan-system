@@ -23,10 +23,8 @@ type paymentHandler struct {
 
 func (p *paymentHandler) TestPublishMessage(w http.ResponseWriter, r *http.Request) {
 	// Create an array of Payment structs
-	payments := []models.Payment{
-		{ID: 1, UserID: 101, LoanID: 202, LoanBillID: 303, Amount: 5000, TotalAmount: 5100, Status: "paid"},
-		{ID: 2, UserID: 102, LoanID: 203, LoanBillID: 304, Amount: 3000, TotalAmount: 3100, Status: "pending"},
-		{ID: 3, UserID: 103, LoanID: 204, LoanBillID: 305, Amount: 7000, TotalAmount: 7100, Status: "paid"},
+	payments := models.Payment{
+		ID: 3, UserID: 123, LoanID: 2, LoanBillID: 1, Amount: 1375000, Status: "PENDING",
 	}
 
 	// Serialize the array to JSON
