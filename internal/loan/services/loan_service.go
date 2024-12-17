@@ -92,6 +92,46 @@ func (l *loanService) CountLoanBillOverdueStatusesByID(ctx context.Context, id i
 	return int32(total), nil
 }
 
+// GetLoansWithBills get loans with bills by userId
+func (l *loanService) GetLoansWithBills(ctx context.Context, userID int) ([]models.LoanWithBills, error) {
+	logger.GetLogger().Info("[LoanService][GetLoansWithBills]")
+
+	loans, err := l.loanRepo.GetLoanByUserID(ctx, userID)
+	if err != nil {
+		return []models.LoanWithBills{}, err
+	}
+
+	var loansWithBills []models.LoanWithBills
+
+	for _, loan := range loans {
+		loanBills, err := l.loanBillRepo.GetLoanBillsByLoanID(ctx, int(loan.ID))
+		if err != nil {
+			return []models.LoanWithBills{}, err
+		}
+
+		loanWithBills := models.LoanWithBills{
+			ID:                 loan.ID,
+			UserID:             loan.UserID,
+			Name:               loan.Name,
+			LoanAmount:         loan.LoanAmount,
+			LoanTotalAmount:    loan.LoanTotalAmount,
+			OutstandingAmount:  loan.OutstandingAmount,
+			InterestPercentage: loan.InterestPercentage,
+			Status:             loan.Status,
+			StartDate:          loan.StartDate,
+			DueDate:            loan.DueDate,
+			LoanTermsPerWeek:   loan.LoanTermsPerWeek,
+			CreatedAt:          loan.CreatedAt,
+			UpdatedAt:          loan.UpdatedAt,
+			LoanBills:          loanBills,
+		}
+
+		loansWithBills = append(loansWithBills, loanWithBills)
+	}
+
+	return loansWithBills, nil
+}
+
 // generateLoanBills generates weekly loan bills based on the loan information
 func (l *loanService) generateLoanBills(ctx context.Context, loan *models.LoanModel, id int64) error {
 	logger.GetLogger().Info("[LoanService][generateLoanBills] Start")
@@ -160,6 +200,7 @@ type LoanServiceInterface interface {
 	CreateLoan(ctx context.Context, request dto.LoanRequest) error
 	UpdateLoanBill(ctx context.Context) error
 	CountLoanBillOverdueStatusesByID(ctx context.Context, id int32) (int32, error)
+	GetLoansWithBills(ctx context.Context, userID int) ([]models.LoanWithBills, error)
 }
 
 func NewLoanService(loanRepo repositories.LoanRepositoryInterface, loanBillRepo repositories.LoanBillRepositoryInterface) LoanServiceInterface {

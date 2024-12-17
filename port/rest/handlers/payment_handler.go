@@ -3,11 +3,12 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"net/http"
+
 	"github.com/okiww/billing-loan-system/configs"
 	"github.com/okiww/billing-loan-system/internal/payment/models"
 	"github.com/okiww/billing-loan-system/pkg/logger"
 	"github.com/okiww/billing-loan-system/pkg/mq"
-	"net/http"
 
 	"github.com/okiww/billing-loan-system/internal/ctx/servicectx"
 	"github.com/okiww/billing-loan-system/internal/dto"
@@ -58,15 +59,31 @@ func (p *paymentHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Step 4: Create the payment record in the database
-	err = p.ServiceCtx.PaymentService.MakePayment(context.Background(), &request)
+	payment, err := p.ServiceCtx.PaymentService.MakePayment(context.Background(), &request)
 	if err != nil {
 		response.NewJSONResponse().SetError(errors.ErrorInternalServer).SetMessage(err.Error()).WriteResponse(w)
 		return
 	}
 
+	go p.publishPayment(payment)
 	// TODO push to rabbitMQ
 	// Step 5: Respond with success message
 	response.NewJSONResponse().SetData(nil).SetMessage("Payment successfully created").WriteResponse(w)
+}
+
+func (p *paymentHandler) publishPayment(payment *models.Payment) {
+	// Serialize the array to JSON
+	jsonData, err := json.Marshal(payment)
+	if err != nil {
+		logger.GetLogger().Fatalf("Failed to marshal array to JSON: %v", err)
+	}
+
+	err = p.RabbitMQ.PublishMessage(p.RabbitMQConfig.QueueName, string(jsonData))
+	if err != nil {
+		logger.GetLogger().Fatalf("Failed to publish message: %v", err)
+	}
+
+	logger.GetLogger().Println("Message published successfully!")
 }
 
 func NewPaymentHandler(ctx servicectx.ServiceCtx, rabbitMQ *mq.RabbitMQ, rabbitMQCfg *configs.RabbitMQConfig) PaymentHandlerInterface {

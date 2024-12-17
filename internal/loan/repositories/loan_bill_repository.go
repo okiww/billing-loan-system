@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+
 	"github.com/okiww/billing-loan-system/helpers"
 	"github.com/okiww/billing-loan-system/internal/loan/models"
 	mysql "github.com/okiww/billing-loan-system/pkg/db"
@@ -74,10 +75,27 @@ func (l *loanBillRepository) GetTotalLoanBillOverdueByLoanID(ctx context.Context
 	return count, nil
 }
 
+func (l *loanBillRepository) GetLoanBillsByLoanID(ctx context.Context, loanID int) ([]models.LoanBillModel, error) {
+	query := `
+		SELECT id, loan_id, billing_date, billing_amount, billing_total_amount, 
+		       billing_number, status, created_at, updated_at 
+		FROM loan_bills
+		WHERE loan_id = ?
+		ORDER by billing_number ASC;
+	`
+	var loans []models.LoanBillModel
+	err := l.DB.SelectContext(ctx, &loans, query, loanID)
+	if err != nil {
+		return nil, err
+	}
+	return loans, nil
+}
+
 type LoanBillRepositoryInterface interface {
 	CreateLoanBill(ctx context.Context, loanBill *models.LoanBillModel) error
 	UpdateLoanBillStatuses(ctx context.Context) error
 	GetTotalLoanBillOverdueByLoanID(ctx context.Context, id int32) (int, error)
+	GetLoanBillsByLoanID(ctx context.Context, loanID int) ([]models.LoanBillModel, error)
 }
 
 func NewLoanBillRepository(db *mysql.DBMySQL) LoanBillRepositoryInterface {

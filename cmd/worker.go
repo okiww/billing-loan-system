@@ -6,6 +6,10 @@ package cmd
 import (
 	"context"
 	"encoding/json"
+	"os"
+	"os/signal"
+	"syscall"
+
 	"github.com/okiww/billing-loan-system/configs"
 	"github.com/okiww/billing-loan-system/internal/ctx/servicectx"
 	loanRepo "github.com/okiww/billing-loan-system/internal/loan/repositories"
@@ -15,9 +19,6 @@ import (
 	mysql "github.com/okiww/billing-loan-system/pkg/db"
 	"github.com/okiww/billing-loan-system/pkg/logger"
 	"github.com/okiww/billing-loan-system/pkg/mq"
-	"os"
-	"os/signal"
-	"syscall"
 
 	"github.com/spf13/cobra"
 )

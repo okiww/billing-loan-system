@@ -2,14 +2,14 @@ package repositories
 
 import (
 	"context"
-	"fmt"
+	"time"
+
 	"github.com/jmoiron/sqlx"
 	"github.com/okiww/billing-loan-system/helpers"
 	"github.com/okiww/billing-loan-system/internal/loan/models"
 	mysql "github.com/okiww/billing-loan-system/pkg/db"
 	"github.com/okiww/billing-loan-system/pkg/logger"
 	"github.com/sirupsen/logrus"
-	"time"
 )
 
 type loanRepository struct {
@@ -25,7 +25,6 @@ func (l *loanRepository) GetLoanByID(id int64) (*models.LoanModel, error) {
 		return nil, err
 	}
 
-	fmt.Println(loan)
 	return loan, nil
 }
 
@@ -115,16 +114,31 @@ func (l *loanRepository) UpdateOutStandingAmountAndStatus(ctx context.Context, t
 		SET 
 			outstanding_amount = outstanding_amount - ?,
 			status = CASE
-				WHEN outstanding_amount - ? = 0 THEN ?
+				WHEN outstanding_amount = 0 THEN ?
 				ELSE status
     		END
 		WHERE id = ?;
 	`
-	_, err := tx.ExecContext(ctx, query, amount, amount, models.StatusActive, id)
+	_, err := tx.ExecContext(ctx, query, amount, models.StatusClosed, id)
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+func (l *loanRepository) GetLoanByUserID(ctx context.Context, userID int) ([]models.LoanModel, error) {
+	query := `
+		SELECT id, user_id, name, loan_amount, loan_total_amount, outstanding_amount, 
+		       interest_percentage, status, start_date, due_date, loan_terms_per_week
+		FROM loans
+		WHERE user_id = ?
+	`
+	var loans []models.LoanModel
+	err := l.DB.SelectContext(ctx, &loans, query, userID)
+	if err != nil {
+		return nil, err
+	}
+	return loans, nil
 }
 
 type LoanRepositoryInterface interface {
@@ -134,6 +148,7 @@ type LoanRepositoryInterface interface {
 	UpdateLoanAndLoanBillsInTx(ctx context.Context, loanID, loanBillID, amount int) error
 	UpdateBilledLoanBillToPaid(ctx context.Context, tx *sqlx.Tx, id int) error
 	UpdateOutStandingAmountAndStatus(ctx context.Context, tx *sqlx.Tx, id, amount int) error
+	GetLoanByUserID(ctx context.Context, userID int) ([]models.LoanModel, error)
 }
 
 func NewLoanRepository(db *mysql.DBMySQL) LoanRepositoryInterface {

@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+
 	"github.com/okiww/billing-loan-system/internal/dto"
 	loanRepo "github.com/okiww/billing-loan-system/internal/loan/repositories"
 	"github.com/okiww/billing-loan-system/internal/payment/models"
@@ -16,20 +17,35 @@ type paymentService struct {
 }
 
 // MakePayment is for initial payment
-func (p *paymentService) MakePayment(ctx context.Context, paymentRequest *dto.PaymentRequest) error {
-	// Optionally, you can validate or process business logic here (e.g., check if payment is valid)
+func (p *paymentService) MakePayment(ctx context.Context, paymentRequest *dto.PaymentRequest) (*models.Payment, error) {
+	// Validation if loan_bills.status = 'BILLED'
+	// Validation if loans.status = 'ACTIVE
+	// Validation if loan_bills = paymentRequest.Amount
+
 	if paymentRequest.Amount <= 0 {
-		return errors.New("payment amount must be greater than zero")
+		return nil, errors.New("payment amount must be greater than zero")
 	}
 
-	// Insert the payment into the database
-	return p.paymentRepo.Create(ctx, &models.Payment{
+	id, err := p.paymentRepo.Create(ctx, &models.Payment{
 		UserID:     paymentRequest.UserID,
 		LoanID:     paymentRequest.LoanID,
 		LoanBillID: paymentRequest.LoanBillID,
 		Amount:     paymentRequest.Amount,
 		Status:     models.StatusPending,
 	})
+	if err != nil {
+		logger.GetLogger().Errorf("[PaymentSerivce][MakePayment] Error Create with err: %v", err)
+		return nil, err
+	}
+
+	payment, err := p.paymentRepo.GetPaymentByID(ctx, id)
+	if err != nil {
+		logger.GetLogger().Errorf("[PaymentSerivce][MakePayment] Error GetPaymentByID with err: %v", err)
+		return nil, err
+	}
+
+	// Insert the payment into the database
+	return payment, nil
 }
 
 // ProcessUpdatePayment is for update payment via subscriber
@@ -67,7 +83,7 @@ func (p *paymentService) ProcessUpdatePayment(ctx context.Context, payment model
 }
 
 type PaymentServiceInterface interface {
-	MakePayment(ctx context.Context, paymentRequest *dto.PaymentRequest) error
+	MakePayment(ctx context.Context, paymentRequest *dto.PaymentRequest) (*models.Payment, error)
 	ProcessUpdatePayment(ctx context.Context, request models.Payment) error
 }
 

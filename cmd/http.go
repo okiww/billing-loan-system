@@ -5,12 +5,13 @@ package cmd
 
 import (
 	"context"
-	"github.com/okiww/billing-loan-system/pkg/mq"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/okiww/billing-loan-system/pkg/mq"
 
 	"github.com/gorilla/mux"
 	"github.com/okiww/billing-loan-system/configs"

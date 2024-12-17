@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/okiww/billing-loan-system/internal/ctx/servicectx"
 	"github.com/okiww/billing-loan-system/internal/dto"
@@ -51,10 +52,28 @@ func (l *loanHandler) Create(w http.ResponseWriter, r *http.Request) {
 	response.NewJSONResponse().SetData(nil).SetMessage("Success create transaction").WriteResponse(w)
 }
 
+func (l *loanHandler) GetLoans(w http.ResponseWriter, r *http.Request) {
+	userIDStr := r.URL.Query().Get("user_id")
+	userID, err := strconv.Atoi(userIDStr)
+	if err != nil {
+		response.NewJSONResponse().SetError(errors.ErrorBadRequest).SetMessage(err.Error()).WriteResponse(w)
+		return
+	}
+
+	loansWithBills, err := l.LoanService.GetLoansWithBills(context.Background(), userID)
+	if err != nil {
+		http.Error(w, "Failed to fetch loans with bills", http.StatusInternalServerError)
+		return
+	}
+
+	response.NewJSONResponse().SetData(loansWithBills).SetMessage("Success get loans").WriteResponse(w)
+}
+
 func NewLoanHandler(ctx servicectx.ServiceCtx) LoanHandlerInterface {
 	return &loanHandler{ctx}
 }
 
 type LoanHandlerInterface interface {
 	Create(w http.ResponseWriter, r *http.Request)
+	GetLoans(w http.ResponseWriter, r *http.Request)
 }

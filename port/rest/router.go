@@ -17,6 +17,7 @@ func RegisterRoutes(router *mux.Router, h Domain) {
 
 	loanRouter := baseRouter.PathPrefix("/loan").Subrouter()
 	loanRouter.HandleFunc("/create", h.Domain.LoanHandler.Create).Methods(http.MethodPost)
+	loanRouter.HandleFunc("/all", h.Domain.LoanHandler.GetLoans).Methods(http.MethodGet)
 
 	paymentRouter := baseRouter.PathPrefix("/payment").Subrouter()
 	paymentRouter.HandleFunc("/create", h.Domain.PaymentHandler.Create).Methods(http.MethodPost)
