@@ -1,1 +1,0 @@
-goose -dir <migrations-folder> mysql "user:password@tcp(localhost:3306)/dbname" up
