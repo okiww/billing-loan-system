@@ -10,12 +10,14 @@ This is a Go project that utilizes various tools and libraries including Go 1.23
   - Create Loan
   - Get All Loan
   - Make Payment
+  - ![image](https://github.com/user-attachments/assets/a5779a99-491f-4d6e-85e6-e3d1e1609b22)
     - Create Payment and Save to DB as Pending
     - Publish to RabbitMQ for Process Payment
 * **Cronjob**
   - Background job that update each **PENDING** loan bills status to **Billed** or **Overdue** every weekly in monday
   - If users has more than 1 **OVERDUE**, will update users to delinquent and wouldn't create loan unless he pays all **OVERDUE** bills
 * **Worker** is the worker that listening or as consumer message from rabbitMQ
+  ![image](https://github.com/user-attachments/assets/ed001307-4798-4621-90c7-50385603ca07)
   - Subscribe payment message and **PROCESS**
   - Update payment status to process
   - Validation loan, loan bill and amount
