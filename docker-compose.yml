@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: billing-loan-system-api
+    ports:
+      - "8088:8088"
+    environment:
+      - ENV_PATH=/root/configs/env-local
+    volumes:
+      - ./configs:/root/configs
+    command: /bin/sh -c "goose -dir db/migrations mysql 'user:password@tcp(mysql:3306)/billing' up && /usr/local/bin/billing-loan-system http"
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: billing-loan-system-worker
+    environment:
+      - ENV_PATH=/root/configs/env-local
+    volumes:
+      - ./configs:/root/configs
+    command: /bin/sh -c "goose -dir db/migrations mysql 'user:password@tcp(mysql:3306)/billing' up && /usr/local/bin/billing-loan-system worker"
+
+  cronjob:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: billing-loan-system-cronjob
+    environment:
+      - ENV_PATH=/root/configs/env-local
+    volumes:
+      - ./configs:/root/configs
+    command: /bin/sh -c "goose -dir db/migrations mysql 'user:password@tcp(mysql:3306)/billing' up && /usr/local/bin/billing-loan-system background"
+
+  # MySQL service
+  mysql:
+    image: mysql:5.7
+    environment:
+      MYSQL_ROOT_PASSWORD: example
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  rabbitmq:
+    image: "rabbitmq:management"
+    ports:
+      - "15673:15672"
+      - "5673:5672"
+
+volumes:
+  mysql_data:
