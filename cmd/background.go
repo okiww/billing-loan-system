@@ -68,7 +68,7 @@ func runCronJob() {
 
 	_, err = c.AddFunc("*/1 * * * *", func() {
 		GenerateBillPaymentEveryWeek(ctx, serviceCtx)
-	}) // Should change to run every monday at 00:00
+	}) // Should change to run every monday at 00:00 with 0 0 * * 1
 	if err != nil {
 		logger.GetLogger().Fatal("Error adding cron job:", err)
 	}
