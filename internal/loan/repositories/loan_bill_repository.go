@@ -91,11 +91,23 @@ func (l *loanBillRepository) GetLoanBillsByLoanID(ctx context.Context, loanID in
 	return loans, nil
 }
 
+func (l *loanBillRepository) GetLoanBillByID(ctx context.Context, id int) (*models.LoanBillModel, error) {
+	loan := &models.LoanBillModel{}
+	query := "SELECT * FROM loan_bills WHERE id = ?"
+	err := l.DB.GetContext(ctx, loan, query, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return loan, nil
+}
+
 type LoanBillRepositoryInterface interface {
 	CreateLoanBill(ctx context.Context, loanBill *models.LoanBillModel) error
 	UpdateLoanBillStatuses(ctx context.Context) error
 	GetTotalLoanBillOverdueByLoanID(ctx context.Context, id int32) (int, error)
 	GetLoanBillsByLoanID(ctx context.Context, loanID int) ([]models.LoanBillModel, error)
+	GetLoanBillByID(ctx context.Context, id int) (*models.LoanBillModel, error)
 }
 
 func NewLoanBillRepository(db *mysql.DBMySQL) LoanBillRepositoryInterface {

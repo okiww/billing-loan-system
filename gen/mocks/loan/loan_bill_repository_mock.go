@@ -49,6 +49,36 @@ func (mr *MockLoanBillRepositoryInterfaceMockRecorder) CreateLoanBill(ctx, loanB
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateLoanBill", reflect.TypeOf((*MockLoanBillRepositoryInterface)(nil).CreateLoanBill), ctx, loanBill)
 }
 
+// GetLoanBillByID mocks base method.
+func (m *MockLoanBillRepositoryInterface) GetLoanBillByID(ctx context.Context, id int) (*models.LoanBillModel, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetLoanBillByID", ctx, id)
+	ret0, _ := ret[0].(*models.LoanBillModel)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetLoanBillByID indicates an expected call of GetLoanBillByID.
+func (mr *MockLoanBillRepositoryInterfaceMockRecorder) GetLoanBillByID(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLoanBillByID", reflect.TypeOf((*MockLoanBillRepositoryInterface)(nil).GetLoanBillByID), ctx, id)
+}
+
+// GetLoanBillsByLoanID mocks base method.
+func (m *MockLoanBillRepositoryInterface) GetLoanBillsByLoanID(ctx context.Context, loanID int) ([]models.LoanBillModel, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetLoanBillsByLoanID", ctx, loanID)
+	ret0, _ := ret[0].([]models.LoanBillModel)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetLoanBillsByLoanID indicates an expected call of GetLoanBillsByLoanID.
+func (mr *MockLoanBillRepositoryInterfaceMockRecorder) GetLoanBillsByLoanID(ctx, loanID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLoanBillsByLoanID", reflect.TypeOf((*MockLoanBillRepositoryInterface)(nil).GetLoanBillsByLoanID), ctx, loanID)
+}
+
 // GetTotalLoanBillOverdueByLoanID mocks base method.
 func (m *MockLoanBillRepositoryInterface) GetTotalLoanBillOverdueByLoanID(ctx context.Context, id int32) (int, error) {
 	m.ctrl.T.Helper()

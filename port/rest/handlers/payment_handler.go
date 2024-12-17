@@ -61,13 +61,17 @@ func (p *paymentHandler) Create(w http.ResponseWriter, r *http.Request) {
 	// Step 4: Create the payment record in the database
 	payment, err := p.ServiceCtx.PaymentService.MakePayment(context.Background(), &request)
 	if err != nil {
+		if err.Error() == dto.ErrorLoanIsNotActive || err.Error() == dto.ErrorPaymentAmountNotMatchWithBill {
+			response.NewJSONResponse().SetError(errors.ErrorBadRequest).SetMessage(err.Error()).WriteResponse(w)
+			return
+		}
 		response.NewJSONResponse().SetError(errors.ErrorInternalServer).SetMessage(err.Error()).WriteResponse(w)
 		return
 	}
 
+	// Step 5: Push to rabbitMQ
 	go p.publishPayment(payment)
-	// TODO push to rabbitMQ
-	// Step 5: Respond with success message
+	// Step 6: Respond with success message
 	response.NewJSONResponse().SetData(nil).SetMessage("Payment successfully created").WriteResponse(w)
 }
 

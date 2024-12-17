@@ -105,7 +105,7 @@ func TestGetLoanByID(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.mock(tt.args)
 
-			got, err := tt.s.GetLoanByID(tt.args.id)
+			got, err := tt.s.GetLoanByID(context.Background(), tt.args.id)
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetLoanByID() error = %v, wantErr %v", err, tt.wantErr)

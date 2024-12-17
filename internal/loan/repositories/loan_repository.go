@@ -17,10 +17,10 @@ type loanRepository struct {
 }
 
 // GetLoanByID retrieves a loan by its ID
-func (l *loanRepository) GetLoanByID(id int64) (*models.LoanModel, error) {
+func (l *loanRepository) GetLoanByID(ctx context.Context, id int64) (*models.LoanModel, error) {
 	loan := &models.LoanModel{}
 	query := "SELECT * FROM loans WHERE id = ?"
-	err := l.DB.Get(loan, query, id)
+	err := l.DB.GetContext(ctx, loan, query, id)
 	if err != nil {
 		return nil, err
 	}
@@ -142,7 +142,7 @@ func (l *loanRepository) GetLoanByUserID(ctx context.Context, userID int) ([]mod
 }
 
 type LoanRepositoryInterface interface {
-	GetLoanByID(id int64) (*models.LoanModel, error)
+	GetLoanByID(ctx context.Context, id int64) (*models.LoanModel, error)
 	CreateLoan(ctx context.Context, loan *models.LoanModel) (int64, error)
 	FetchActiveLoan(ctx context.Context) ([]models.LoanModel, error)
 	UpdateLoanAndLoanBillsInTx(ctx context.Context, loanID, loanBillID, amount int) error

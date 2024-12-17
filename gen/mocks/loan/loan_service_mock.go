@@ -80,6 +80,21 @@ func (mr *MockLoanServiceInterfaceMockRecorder) GetAllActiveLoan(ctx interface{}
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllActiveLoan", reflect.TypeOf((*MockLoanServiceInterface)(nil).GetAllActiveLoan), ctx)
 }
 
+// GetLoansWithBills mocks base method.
+func (m *MockLoanServiceInterface) GetLoansWithBills(ctx context.Context, userID int) ([]models.LoanWithBills, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetLoansWithBills", ctx, userID)
+	ret0, _ := ret[0].([]models.LoanWithBills)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetLoansWithBills indicates an expected call of GetLoansWithBills.
+func (mr *MockLoanServiceInterfaceMockRecorder) GetLoansWithBills(ctx, userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLoansWithBills", reflect.TypeOf((*MockLoanServiceInterface)(nil).GetLoansWithBills), ctx, userID)
+}
+
 // UpdateLoanBill mocks base method.
 func (m *MockLoanServiceInterface) UpdateLoanBill(ctx context.Context) error {
 	m.ctrl.T.Helper()

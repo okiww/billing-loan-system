@@ -68,10 +68,11 @@ func InitWorker() {
 
 	// initial domain context
 	loanRepository := loanRepo.NewLoanRepository(db)
+	loanBillRepository := loanRepo.NewLoanBillRepository(db)
 	paymentRepository := paymentRepo.NewPaymentRepository(db)
 
 	serviceCtx := servicectx.ServiceCtx{
-		PaymentService: services.NewPaymentService(paymentRepository, loanRepository),
+		PaymentService: services.NewPaymentService(paymentRepository, loanRepository, loanBillRepository),
 	}
 
 	messages, err := rabbitMQ.ConsumeMessages(cfg.RabbitMQ.QueueName)

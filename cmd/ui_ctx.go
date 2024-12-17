@@ -24,7 +24,7 @@ func InitCtx(db *mysql.DBMySQL, mq *mq.RabbitMQ, rabbitMQCfg *configs.RabbitMQCo
 	serviceCtx := servicectx.ServiceCtx{
 		LoanService:    services.NewLoanService(loanRepository, loanBillRepository),
 		UserService:    userService.NewUserService(userRepository),
-		PaymentService: paymentService.NewPaymentService(paymentRepository, loanRepository),
+		PaymentService: paymentService.NewPaymentService(paymentRepository, loanRepository, loanBillRepository),
 	}
 
 	handlerCtx := handlerctx.HandlerCtx{
