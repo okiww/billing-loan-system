@@ -2,6 +2,8 @@ package repositories
 
 import (
 	"context"
+	"database/sql"
+	"reflect"
 	"regexp"
 	"testing"
 	"time"
@@ -296,6 +298,239 @@ func TestGetTotalLoanBillOverdueByLoanID(t *testing.T) {
 
 			if got != tt.want {
 				t.Errorf("GetTotalLoanBillOverdueByLoanID() got = %v, want %v", got, tt.want)
+			}
+
+			// Validate mock expectations
+			err = mock.ExpectationsWereMet()
+			if err != nil {
+				t.Errorf("Expectations were not met: %v", err)
+			}
+		})
+	}
+}
+
+func TestGetLoanBillsByLoanID(t *testing.T) {
+	db, mock, err := sqlmock.Newx()
+	assert.NoError(t, err)
+	defer db.Close()
+
+	mockDB := &mysql.DBMySQL{DB: db}
+	repo := NewLoanBillRepository(mockDB)
+
+	type args struct {
+		loanID int
+	}
+
+	mockStartDate := time.Date(2024, 12, 16, 10, 0, 0, 0, time.UTC)
+
+	tests := []struct {
+		name    string
+		repo    LoanBillRepositoryInterface
+		args    args
+		want    []models.LoanBillModel
+		wantErr bool
+		mock    func(a args)
+	}{
+		{
+			name: "Success",
+			repo: repo,
+			args: args{
+				loanID: 1,
+			},
+			want: []models.LoanBillModel{
+				{
+					ID:                 1,
+					LoanID:             1,
+					BillingDate:        mockStartDate,
+					BillingAmount:      1000,
+					BillingTotalAmount: 1200,
+					BillingNumber:      1,
+					Status:             "BILLED",
+					CreatedAt:          mockStartDate,
+					UpdatedAt:          mockStartDate,
+				},
+			},
+			wantErr: false,
+			mock: func(a args) {
+				mock.ExpectQuery(regexp.QuoteMeta(`
+						SELECT id, loan_id, billing_date, billing_amount, billing_total_amount, 
+							   billing_number, status, created_at, updated_at 
+						FROM loan_bills
+						WHERE loan_id = ?
+						ORDER by billing_number ASC;
+					`)).WithArgs(a.loanID).WillReturnRows(sqlmock.NewRows([]string{
+					"id", "loan_id", "billing_date", "billing_amount", "billing_total_amount",
+					"billing_number", "status", "created_at", "updated_at",
+				}).
+					AddRow(1, 1, mockStartDate, 1000, 1200, 1, "BILLED", mockStartDate, mockStartDate),
+				)
+			},
+		},
+		{
+			name: "Loan Bills Not Found",
+			repo: repo,
+			args: args{
+				loanID: 1,
+			},
+			want:    nil,
+			wantErr: false,
+			mock: func(a args) {
+				mock.ExpectQuery(regexp.QuoteMeta(`
+						SELECT id, loan_id, billing_date, billing_amount, billing_total_amount, 
+							   billing_number, status, created_at, updated_at 
+						FROM loan_bills
+						WHERE loan_id = ?
+						ORDER by billing_number ASC;
+					`)).
+					WithArgs(a.loanID).
+					WillReturnRows(sqlmock.NewRows([]string{
+						"id", "loan_id", "billing_date", "billing_amount", "billing_total_amount",
+						"billing_number", "status", "created_at", "updated_at",
+					}))
+			},
+		},
+		{
+			name: "Database Error",
+			repo: repo,
+			args: args{
+				loanID: 1,
+			},
+			want:    nil,
+			wantErr: true,
+			mock: func(a args) {
+				mock.ExpectQuery(regexp.QuoteMeta(`
+						SELECT id, loan_id, billing_date, billing_amount, billing_total_amount, 
+							   billing_number, status, created_at, updated_at 
+						FROM loan_bills
+						WHERE loan_id = ?
+						ORDER by billing_number ASC;
+					`)).WillReturnError(errors.New("db error"))
+			},
+		},
+	}
+
+	// Run each test case
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.mock(tt.args)
+
+			got, err := tt.repo.GetLoanBillsByLoanID(context.Background(), tt.args.loanID)
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetLoanBillsByLoanID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if !tt.wantErr && !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("GetLoanBillsByLoanID() got = %v, want %v", got, tt.want)
+			}
+
+			// Validate mock expectations
+			err = mock.ExpectationsWereMet()
+			if err != nil {
+				t.Errorf("Expectations were not met: %v", err)
+			}
+		})
+	}
+}
+
+func TestGetLoanBillByID(t *testing.T) {
+	db, mock, err := sqlmock.Newx()
+	assert.NoError(t, err)
+	defer db.Close()
+
+	mockDB := &mysql.DBMySQL{DB: db}
+	repo := NewLoanBillRepository(mockDB)
+
+	type args struct {
+		id int
+	}
+
+	mockStartDate := time.Date(2024, 12, 16, 10, 0, 0, 0, time.UTC)
+
+	tests := []struct {
+		name    string
+		repo    LoanBillRepositoryInterface
+		args    args
+		want    *models.LoanBillModel
+		wantErr bool
+		mock    func(a args)
+	}{
+		{
+			name: "Success",
+			repo: repo,
+			args: args{
+				id: 1,
+			},
+			want: &models.LoanBillModel{
+				ID:                 1,
+				LoanID:             1,
+				BillingDate:        mockStartDate,
+				BillingAmount:      1000,
+				BillingTotalAmount: 1200,
+				BillingNumber:      1,
+				Status:             "BILLED",
+				CreatedAt:          mockStartDate,
+				UpdatedAt:          mockStartDate,
+			},
+			wantErr: false,
+			mock: func(a args) {
+				mock.ExpectQuery(regexp.QuoteMeta(`
+						SELECT * FROM loan_bills WHERE id = ?
+					`)).WithArgs(a.id).WillReturnRows(sqlmock.NewRows([]string{
+					"id", "loan_id", "billing_date", "billing_amount", "billing_total_amount",
+					"billing_number", "status", "created_at", "updated_at",
+				}).
+					AddRow(1, 1, mockStartDate, 1000, 1200, 1, "BILLED", mockStartDate, mockStartDate),
+				)
+			},
+		},
+		{
+			name: "Loan Bill Not Found",
+			repo: repo,
+			args: args{
+				id: 1,
+			},
+			want:    nil,
+			wantErr: true,
+			mock: func(a args) {
+				mock.ExpectQuery(regexp.QuoteMeta(`
+						SELECT * FROM loan_bills WHERE id = ?
+					`)).
+					WithArgs(a.id).
+					WillReturnError(sql.ErrNoRows)
+			},
+		},
+		{
+			name: "Database Error",
+			repo: repo,
+			args: args{
+				id: 1,
+			},
+			want:    nil,
+			wantErr: true,
+			mock: func(a args) {
+				mock.ExpectQuery(regexp.QuoteMeta(`
+						SELECT * FROM loan_bills WHERE id = ?
+					`)).WillReturnError(errors.New("db error"))
+			},
+		},
+	}
+
+	// Run each test case
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.mock(tt.args)
+
+			got, err := tt.repo.GetLoanBillByID(context.Background(), tt.args.id)
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetLoanBillByID() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if !tt.wantErr && !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("GetLoanBillByID() got = %v, want %v", got, tt.want)
 			}
 
 			// Validate mock expectations

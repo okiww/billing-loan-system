@@ -5,8 +5,9 @@ package cmd
 
 import (
 	"context"
-	billingConfigRepo "github.com/okiww/billing-loan-system/internal/billing_config/repositories"
 	"time"
+
+	billingConfigRepo "github.com/okiww/billing-loan-system/internal/billing_config/repositories"
 
 	"github.com/okiww/billing-loan-system/configs"
 	"github.com/okiww/billing-loan-system/internal/ctx/servicectx"

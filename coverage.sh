@@ -11,7 +11,12 @@ grep -v /billing-loan-system/gen |
 grep -v /billing-loan-system/db |
 grep -v /billing-loan-system/internal/ctx |
 grep -v /billing-loan-system/internal/dto |
-grep -v /billing-loan-system/tests
+grep -v /billing-loan-system/tests |
+grep -v /billing-loan-system/port |
+grep -v /billing-loan-system/internal/dto |
+grep -v /billing-loan-system/internal/billing_config/models |
+grep -v /billing-loan-system/internal/payment/models |
+grep -v /billing-loan-system/internal/loan/models
 )
 
 # Remove the coverage files directory, will keep this dir for sonarqube

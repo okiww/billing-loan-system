@@ -2,9 +2,10 @@ package repositories
 
 import (
 	"context"
+	"strings"
+
 	"github.com/okiww/billing-loan-system/internal/billing_config/models"
 	mysql "github.com/okiww/billing-loan-system/pkg/db"
-	"strings"
 )
 
 type billingConfigRepository struct {

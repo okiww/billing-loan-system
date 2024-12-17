@@ -4,11 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	billingModel "github.com/okiww/billing-loan-system/internal/billing_config/models"
-	billingConfigRepo "github.com/okiww/billing-loan-system/internal/billing_config/repositories"
 	"log"
 	"sync"
 	"time"
+
+	billingModel "github.com/okiww/billing-loan-system/internal/billing_config/models"
+	billingConfigRepo "github.com/okiww/billing-loan-system/internal/billing_config/repositories"
 
 	"github.com/okiww/billing-loan-system/internal/loan/models"
 
