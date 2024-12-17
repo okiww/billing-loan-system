@@ -1,17 +1,26 @@
-
 # Go Project Billing Loan
 
 This is a Go project that utilizes various tools and libraries including Go 1.23.1, MySQL, RabbitMQ, Viper, Cobra, Gomock & Mockgen, and Goose.
 ## Flow
 ### Database
+![Amartha - Billing System](https://github.com/user-attachments/assets/a8cc0377-4380-4eb0-84b2-89b67c343df5)
 
 ## Feature
 * **API Create Loan**
-    - Create Loan
-    - Get All Loan
-    - Make Payment
-* **Cronjob** is the background job that generate bills payment every weekly in monday
+  - Create Loan
+  - Get All Loan
+  - Make Payment
+    - Create Payment and Save to DB as Pending
+    - Publish to RabbitMQ for Process Payment
+* **Cronjob**
+  - Background job that update each **PENDING** loan bills status to **Billed** or **Overdue** every weekly in monday
+  - If users has more than 1 **OVERDUE**, will update users to delinquent and wouldn't create loan unless he pays all **OVERDUE** bills
 * **Worker** is the worker that listening or as consumer message from rabbitMQ
+  - Subscribe payment message and **PROCESS**
+  - Update payment status to process
+  - Validation loan, loan bill and amount
+  - Update loans status and bill status under Trx
+  - Update payment status to **SUCCESS** if success, and **FAILED** if has errors
 
 ## Setup & Installation
 
@@ -77,6 +86,20 @@ To run the Worker server for RabbitMQ Subscriber:
 ```bash
 make serve-http
 ```
+To format code and format import code:
+```bash
+make format
+```
+To generate mock:
+```bash
+make gen-mocks
+```
+To run unit test:
+```bash
+make test
+```
+![image](https://github.com/user-attachments/assets/515fc2f6-5e1b-434b-9f26-11d4b14c46ac)
+
 ## Tech Stack
 
 **Server:** Go, MySQL, RabbitMQ, Viper, Cobra, Mockgen, Goose
