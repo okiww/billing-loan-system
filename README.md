@@ -69,6 +69,8 @@ Then, create migration files and apply them to the database:
 ```bash
  goose -dir "./db/migrations" mysql "<user>:<password>@tcp(localhost:3306)/<dbname>" up
  ```
+### 8. Via Docker
+The project itself provide **Dockerfile** and **docker-compose**
 
 ## Make Commands
 
