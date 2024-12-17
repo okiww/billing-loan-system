@@ -3,9 +3,10 @@ package services
 import (
 	"context"
 	"fmt"
-	"github.com/okiww/billing-loan-system/pkg/errors"
 	"testing"
 	"time"
+
+	"github.com/okiww/billing-loan-system/pkg/errors"
 
 	billing_config_mock "github.com/okiww/billing-loan-system/gen/mocks/billing_config"
 	models2 "github.com/okiww/billing-loan-system/internal/billing_config/models"

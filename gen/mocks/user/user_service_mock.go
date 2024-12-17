@@ -62,3 +62,17 @@ func (mr *MockUserServiceInterfaceMockRecorder) UpdateUserToDelinquent(ctx, user
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserToDelinquent", reflect.TypeOf((*MockUserServiceInterface)(nil).UpdateUserToDelinquent), ctx, userID)
 }
+
+// UpdateUserToNotDelinquent mocks base method.
+func (m *MockUserServiceInterface) UpdateUserToNotDelinquent(ctx context.Context, userID int32) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateUserToNotDelinquent", ctx, userID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateUserToNotDelinquent indicates an expected call of UpdateUserToNotDelinquent.
+func (mr *MockUserServiceInterfaceMockRecorder) UpdateUserToNotDelinquent(ctx, userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserToNotDelinquent", reflect.TypeOf((*MockUserServiceInterface)(nil).UpdateUserToNotDelinquent), ctx, userID)
+}

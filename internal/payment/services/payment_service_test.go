@@ -2,9 +2,10 @@ package services
 
 import (
 	"context"
+	"testing"
+
 	loan_mock "github.com/okiww/billing-loan-system/gen/mocks/loan"
 	payment_mock "github.com/okiww/billing-loan-system/gen/mocks/payment"
-	"testing"
 
 	"github.com/golang/mock/gomock"
 	"github.com/okiww/billing-loan-system/internal/dto"

@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/okiww/billing-loan-system/helpers"
+
 	"github.com/okiww/billing-loan-system/internal/user/models"
 	mysql "github.com/okiww/billing-loan-system/pkg/db"
 )
@@ -20,21 +21,6 @@ type userRepository struct {
 	*mysql.DBMySQL
 }
 
-func NewUserRepository(db *mysql.DBMySQL) UserRepositoryInterface {
-	if helpers.IsTestEnv() { // Skip singleton in tests
-		return &userRepository{
-			db,
-		}
-	}
-
-	repoLock.Do(func() {
-		repo = &userRepository{
-			db,
-		}
-	})
-	return repo
-}
-
 // UpdateUserToDelinquent updates the is_delinquent field of a user to true.
 func (u *userRepository) UpdateUserToDelinquent(ctx context.Context, userID int32) error {
 	query := `
@@ -45,6 +31,21 @@ func (u *userRepository) UpdateUserToDelinquent(ctx context.Context, userID int3
 	_, err := u.DB.ExecContext(ctx, query, userID)
 	if err != nil {
 		return fmt.Errorf("error updating user to delinquent: %w", err)
+	}
+
+	return nil
+}
+
+// UpdateUserToNotDelinquent updates the is_delinquent field of a user to false.
+func (u *userRepository) UpdateUserToNotDelinquent(ctx context.Context, userID int32) error {
+	query := `
+		UPDATE users
+		SET is_delinquent = 0, updated_at = CURRENT_TIMESTAMP
+		WHERE id = ?
+	`
+	_, err := u.DB.ExecContext(ctx, query, userID)
+	if err != nil {
+		return fmt.Errorf("error updating user to not delinquent: %w", err)
 	}
 
 	return nil
@@ -70,7 +71,23 @@ func (u *userRepository) GetUserByID(ctx context.Context, userID int32) (*models
 	return user, nil
 }
 
+func NewUserRepository(db *mysql.DBMySQL) UserRepositoryInterface {
+	if helpers.IsTestEnv() { // Skip singleton in tests
+		return &userRepository{
+			db,
+		}
+	}
+
+	repoLock.Do(func() {
+		repo = &userRepository{
+			db,
+		}
+	})
+	return repo
+}
+
 type UserRepositoryInterface interface {
 	UpdateUserToDelinquent(ctx context.Context, userID int32) error
+	UpdateUserToNotDelinquent(ctx context.Context, userID int32) error
 	GetUserByID(ctx context.Context, userID int32) (*models.UserModel, error)
 }

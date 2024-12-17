@@ -126,10 +126,17 @@ func processPayment(ctx context.Context, serviceCtx *servicectx.ServiceCtx, body
 		return err
 	}
 
-	if total > 1 {
-		err := serviceCtx.UserService.UpdateUserToDelinquent(ctx, int32(payment.UserID))
+	// validate users isDelinquent or not
+	isDelinquent, err := serviceCtx.UserService.IsDelinquent(context.Background(), int32(payment.UserID))
+	if err != nil {
+		logger.Fatalf("Error Get User is Delinquent")
+		return err
+	}
+
+	if total < 2 && isDelinquent {
+		err := serviceCtx.UserService.UpdateUserToNotDelinquent(ctx, int32(payment.UserID))
 		if err != nil {
-			logger.Fatalf("Error Update User To Delinquent")
+			logger.Fatalf("Error update user to not delinquent")
 			return err
 		}
 	}

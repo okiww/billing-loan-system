@@ -31,11 +31,24 @@ func (u *userService) IsDelinquent(ctx context.Context, userID int32) (bool, err
 	if err != nil {
 		logger.GetLogger().WithFields(logrus.Fields{
 			"user_id": userID,
-		}).Errorf("[UserService][IsDelinquent]e rror get user by id %v", err)
+		}).Errorf("[UserService][IsDelinquent] error get user by id %v", err)
 		return false, err
 	}
 
 	return user.IsDelinquent, nil
+}
+
+func (u *userService) UpdateUserToNotDelinquent(ctx context.Context, userID int32) error {
+	logger.GetLogger().Info("[UserService][UpdateUserToNotDelinquent]")
+	err := u.userRepo.UpdateUserToNotDelinquent(ctx, userID)
+	if err != nil {
+		logger.GetLogger().WithFields(logrus.Fields{
+			"user_id": userID,
+		}).Errorf("[UserService][UpdateUserToNotDelinquent] error update user to delinquent %v", err)
+		return err
+	}
+
+	return nil
 }
 
 func NewUserService(userRepo repositories.UserRepositoryInterface) UserServiceInterface {
@@ -45,4 +58,5 @@ func NewUserService(userRepo repositories.UserRepositoryInterface) UserServiceIn
 type UserServiceInterface interface {
 	UpdateUserToDelinquent(ctx context.Context, userID int32) error
 	IsDelinquent(ctx context.Context, userID int32) (bool, error)
+	UpdateUserToNotDelinquent(ctx context.Context, userID int32) error
 }
