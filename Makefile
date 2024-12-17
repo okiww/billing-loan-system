@@ -47,5 +47,9 @@ gen-mocks:
 	mockgen  --package mockgen -source=internal/user/services/user_service.go -destination=gen/mocks/user/user_service_mock.go -package=user_mock
 	mockgen  --package mockgen -source=internal/user/repositories/user_repository.go -destination=gen/mocks/user/user_repository_mock.go -package=user_mock
 
+	#payment
+	mockgen  --package mockgen -source=internal/payment/services/payment_service.go -destination=gen/mocks/payment/payment_service_mock.go -package=payment_mock
+	mockgen  --package mockgen -source=internal/payment/repositories/payment_repository.go -destination=gen/mocks/payment/payment_repository_mock.go -package=payment_mock
+
 	# billing_config
 	mockgen  --package mockgen -source=internal/billing_config/repositories/billing_config_repository.go -destination=gen/mocks/billing_config/billing_config_repository_mock.go -package=billing_config_mock

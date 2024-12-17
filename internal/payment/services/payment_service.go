@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-
 	loanModel "github.com/okiww/billing-loan-system/internal/loan/models"
 
 	"github.com/okiww/billing-loan-system/internal/dto"
@@ -28,7 +27,11 @@ func (p *paymentService) MakePayment(ctx context.Context, paymentRequest *dto.Pa
 		return nil, err
 	}
 
-	if loanBill.Status != loanModel.StatusBilled && loanBill.BillingTotalAmount != int32(paymentRequest.Amount) {
+	if loanBill.Status != loanModel.StatusBilled {
+		return nil, errors.New(dto.ErrorLoanBillStatusNotBilled)
+	}
+
+	if loanBill.BillingTotalAmount != int32(paymentRequest.Amount) {
 		return nil, errors.New(dto.ErrorPaymentAmountNotMatchWithBill)
 	}
 	// Validation if loans.status = 'ACTIVE
@@ -81,10 +84,10 @@ func (p *paymentService) ProcessUpdatePayment(ctx context.Context, payment model
 	if err != nil {
 		logger.GetLogger().Errorf("[PaymentService][UpdatePaymentStatus] Error UpdateLoanAndLoanBillsInTx with err: %v", err)
 		// if error, update payment to failed
-		err := p.paymentRepo.UpdatePaymentStatus(ctx, int32(payment.ID), models.StatusFailed, models.Note_Failed_With_ERROR_SYSTEM)
-		if err != nil {
+		updateErr := p.paymentRepo.UpdatePaymentStatus(ctx, int32(payment.ID), models.StatusFailed, models.Note_Failed_With_ERROR_SYSTEM)
+		if updateErr != nil {
 			logger.GetLogger().Errorf("[PaymentService][UpdatePaymentStatus] Error UpdatePaymentStatus to Failed with err: %v", err)
-			return err
+			return updateErr
 		}
 		return err
 	}

@@ -23,6 +23,7 @@ func (r *PaymentRequest) Validate() error {
 }
 
 const (
+	ErrorLoanBillStatusNotBilled       = "loan bill status is not billed"
 	ErrorPaymentAmountNotMatchWithBill = "payment amount not match with the bill"
 	ErrorLoanIsNotActive               = "loan is not active"
 )

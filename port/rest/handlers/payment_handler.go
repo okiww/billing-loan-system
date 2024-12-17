@@ -61,7 +61,7 @@ func (p *paymentHandler) Create(w http.ResponseWriter, r *http.Request) {
 	// Step 4: Create the payment record in the database
 	payment, err := p.ServiceCtx.PaymentService.MakePayment(context.Background(), &request)
 	if err != nil {
-		if err.Error() == dto.ErrorLoanIsNotActive || err.Error() == dto.ErrorPaymentAmountNotMatchWithBill {
+		if err.Error() == dto.ErrorLoanIsNotActive || err.Error() == dto.ErrorPaymentAmountNotMatchWithBill || err.Error() == dto.ErrorLoanBillStatusNotBilled {
 			response.NewJSONResponse().SetError(errors.ErrorBadRequest).SetMessage(err.Error()).WriteResponse(w)
 			return
 		}
