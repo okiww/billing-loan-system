@@ -2,7 +2,11 @@ package services
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	billingModel "github.com/okiww/billing-loan-system/internal/billing_config/models"
+	billingConfigRepo "github.com/okiww/billing-loan-system/internal/billing_config/repositories"
+	"log"
 	"sync"
 	"time"
 
@@ -16,12 +20,39 @@ import (
 )
 
 type loanService struct {
-	loanRepo     repositories.LoanRepositoryInterface
-	loanBillRepo repositories.LoanBillRepositoryInterface
+	loanRepo          repositories.LoanRepositoryInterface
+	loanBillRepo      repositories.LoanBillRepositoryInterface
+	billingConfigRepo billingConfigRepo.BillingConfigRepositoryInterface
 }
 
 func (l *loanService) CreateLoan(ctx context.Context, request dto.LoanRequest) error {
 	logger.GetLogger().Info("[LoanService][CreateLoan]")
+	// get billing config
+	var (
+		interestPercentage = models.DefaultInterestPercentage
+		loanTermsPerWeek   = models.DefaultLoanTermsPerWeek
+	)
+
+	interestPercentageConfig, err := l.getConfigByName(ctx, models.ConfigInterestPercentage)
+	if err != nil {
+		logger.GetLogger().Errorf("[LoanService][CreateLoan] Error getConfigByName for ConfigInterestPercentage with err: %v", err)
+		logger.GetLogger().Info("[LoanService][CreateLoan] Will using default config for ConfigInterestPercentage")
+	}
+
+	if interestPercentageConfig.IsActive {
+		interestPercentage = int(interestPercentageConfig.Value)
+	}
+
+	loanTermsPerWeekConfig, err := l.getConfigByName(ctx, models.ConfigTermsPerWeek)
+	if err != nil {
+		logger.GetLogger().Errorf("[LoanService][CreateLoan] Error getConfigByName for ConfigInterestPercentage with err: %v", err)
+		logger.GetLogger().Info("[LoanService][CreateLoan] Will using default config for ConfigInterestPercentage")
+	}
+
+	if loanTermsPerWeekConfig.IsActive {
+		loanTermsPerWeek = int(loanTermsPerWeekConfig.Value)
+	}
+
 	// Create a new loan
 	loanTotalAmount := int32(float64(request.LoanAmount) + (float64(request.LoanAmount) * 10 / 100))
 	newLoan := &models.LoanModel{
@@ -30,11 +61,11 @@ func (l *loanService) CreateLoan(ctx context.Context, request dto.LoanRequest) e
 		LoanAmount:         request.LoanAmount,
 		LoanTotalAmount:    loanTotalAmount,
 		OutstandingAmount:  loanTotalAmount,
-		InterestPercentage: 10, // TODO Should be get From Config
+		InterestPercentage: float64(interestPercentage), // TODO Should be get From Config
 		Status:             request.Status,
 		StartDate:          time.Now(),
 		DueDate:            helpers.GenerateLastBillDate(time.Now(), 4),
-		LoanTermsPerWeek:   4, // TODO should be get from config
+		LoanTermsPerWeek:   int32(loanTermsPerWeek), // TODO should be get from config
 	}
 
 	id, err := l.loanRepo.CreateLoan(ctx, newLoan)
@@ -195,6 +226,21 @@ func (l *loanService) generateLoanBills(ctx context.Context, loan *models.LoanMo
 	return nil
 }
 
+func (l *loanService) getConfigByName(ctx context.Context, name string) (*billingModel.BillingValueConfig, error) {
+	billingConfig, err := l.billingConfigRepo.GetBillingConfigByName(ctx, name)
+	if err != nil {
+		return nil, err
+	}
+
+	var valueConfig billingModel.BillingValueConfig
+	err = json.Unmarshal([]byte(billingConfig.Value), &valueConfig)
+	if err != nil {
+		log.Printf("Error unmarshaling loan_interest config: %v", err)
+		return nil, err
+	}
+	return &valueConfig, nil
+}
+
 type LoanServiceInterface interface {
 	GetAllActiveLoan(ctx context.Context) ([]models.LoanModel, error)
 	CreateLoan(ctx context.Context, request dto.LoanRequest) error
@@ -203,9 +249,10 @@ type LoanServiceInterface interface {
 	GetLoansWithBills(ctx context.Context, userID int) ([]models.LoanWithBills, error)
 }
 
-func NewLoanService(loanRepo repositories.LoanRepositoryInterface, loanBillRepo repositories.LoanBillRepositoryInterface) LoanServiceInterface {
+func NewLoanService(loanRepo repositories.LoanRepositoryInterface, loanBillRepo repositories.LoanBillRepositoryInterface, billingConfigRepo billingConfigRepo.BillingConfigRepositoryInterface) LoanServiceInterface {
 	return &loanService{
 		loanRepo,
 		loanBillRepo,
+		billingConfigRepo,
 	}
 }

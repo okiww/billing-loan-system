@@ -5,6 +5,7 @@ package cmd
 
 import (
 	"context"
+	billingConfigRepo "github.com/okiww/billing-loan-system/internal/billing_config/repositories"
 	"time"
 
 	"github.com/okiww/billing-loan-system/configs"
@@ -55,9 +56,10 @@ func runCronJob() {
 	loanRepository := repositories.NewLoanRepository(db)
 	loanBillRepository := repositories.NewLoanBillRepository(db)
 	userRepository := userRepo.NewUserRepository(db)
+	billingConfigRepository := billingConfigRepo.NewBillingConfigRepository(db)
 
 	serviceCtx := servicectx.ServiceCtx{
-		LoanService: loanService.NewLoanService(loanRepository, loanBillRepository),
+		LoanService: loanService.NewLoanService(loanRepository, loanBillRepository, billingConfigRepository),
 		UserService: userService.NewUserService(userRepository),
 	}
 

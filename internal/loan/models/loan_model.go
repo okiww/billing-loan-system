@@ -43,4 +43,9 @@ const (
 	StatusPending = "PENDING"
 	StatusBilled  = "BILLED"
 	StatusPaid    = "PAID"
+
+	ConfigInterestPercentage  = "loan_interest_percentage"
+	ConfigTermsPerWeek        = "loan_term_per_week"
+	DefaultInterestPercentage = 10
+	DefaultLoanTermsPerWeek   = 50
 )
