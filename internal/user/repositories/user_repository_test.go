@@ -31,6 +31,7 @@ func TestUpdateUserToDelinquent(t *testing.T) {
 	// Table-driven test cases
 	type args struct {
 		userID int32
+		id     int32
 	}
 	tests := []struct {
 		name    string
@@ -44,11 +45,12 @@ func TestUpdateUserToDelinquent(t *testing.T) {
 			s:    repo,
 			args: args{
 				userID: 1,
+				id:     1,
 			},
 			wantErr: false,
 			mock: func(a args) {
 				mock.ExpectExec(regexp.QuoteMeta(
-					`UPDATE user SET is_delinquent = 1, updated_at = CURRENT_TIMESTAMP WHERE id = ?`)).
+					`UPDATE users SET is_delinquent = 1, updated_at = CURRENT_TIMESTAMP WHERE id = ?`)).
 					WithArgs(a.userID).
 					WillReturnResult(sqlmock.NewResult(1, 1)) // Simulate 1 row updated
 			},
@@ -58,11 +60,12 @@ func TestUpdateUserToDelinquent(t *testing.T) {
 			s:    repo,
 			args: args{
 				userID: 99,
+				id:     1,
 			},
 			wantErr: true,
 			mock: func(a args) {
 				mock.ExpectExec(regexp.QuoteMeta(
-					`UPDATE user SET is_delinquent = 1, updated_at = CURRENT_TIMESTAMP WHERE id = ?`)).
+					`UPDATE users SET is_delinquent = 1, updated_at = CURRENT_TIMESTAMP WHERE id = ?`)).
 					WithArgs(a.userID).
 					WillReturnError(fmt.Errorf("db error"))
 			},
@@ -126,7 +129,7 @@ func TestGetUserByID(t *testing.T) {
 			wantErr: false,
 			mock: func(a args) {
 				mock.ExpectQuery(regexp.QuoteMeta(
-					`SELECT id, name, is_delinquent FROM user WHERE id = ?`)).
+					`SELECT id, name, is_delinquent FROM users WHERE id = ?`)).
 					WithArgs(a.userID).
 					WillReturnRows(sqlmock.NewRows([]string{"id", "name", "is_delinquent"}).
 						AddRow(1, "John Doe", false))
@@ -142,7 +145,7 @@ func TestGetUserByID(t *testing.T) {
 			wantErr: false,
 			mock: func(a args) {
 				mock.ExpectQuery(regexp.QuoteMeta(
-					`SELECT id, name, is_delinquent FROM user WHERE id = ?`)).
+					`SELECT id, name, is_delinquent FROM users WHERE id = ?`)).
 					WithArgs(a.userID).
 					WillReturnError(sql.ErrNoRows)
 			},
@@ -157,7 +160,7 @@ func TestGetUserByID(t *testing.T) {
 			wantErr: true,
 			mock: func(a args) {
 				mock.ExpectQuery(regexp.QuoteMeta(
-					`SELECT id, name, is_delinquent FROM user WHERE id = ?`)).
+					`SELECT id, name, is_delinquent FROM users WHERE id = ?`)).
 					WithArgs(a.userID).
 					WillReturnError(fmt.Errorf("db error"))
 			},

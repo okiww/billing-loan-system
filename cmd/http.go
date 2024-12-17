@@ -5,6 +5,7 @@ package cmd
 
 import (
 	"context"
+	"github.com/okiww/billing-loan-system/pkg/mq"
 	"log"
 	"net/http"
 	"os"
@@ -47,8 +48,16 @@ func ServeHttp() {
 		log.Fatalf("failed to connect db")
 	}
 
+	// initial rabbitMQ
+	rabbitMQ, err := mq.NewRabbitMQ(cfg.RabbitMQ.Dsn)
+	if err != nil {
+		logger.GetLogger().Fatalf("failed to connect to RabbitMQ: %v", err)
+		return
+	}
+	defer rabbitMQ.Close()
+
 	// initial domain context
-	domainCtx := InitCtx(db)
+	domainCtx := InitCtx(db, rabbitMQ, &cfg.RabbitMQ)
 
 	// initial router
 	router := mux.NewRouter()

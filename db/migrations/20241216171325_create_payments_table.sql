@@ -6,8 +6,10 @@ CREATE TABLE IF NOT EXISTS payments (
     loan_id INTEGER,
     loan_bill_id INTEGER,
     amount INTEGER,
-    status ENUM('PENDING', 'PROCESS', 'COMPLETED'),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    status ENUM('PENDING', 'PROCESS', 'COMPLETED', 'FAILED'),
+    note TINYTEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at           TIMESTAMP NULL ON UPDATE CURRENT_TIMESTAMP
 );
 
 -- +goose Down

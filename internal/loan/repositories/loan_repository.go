@@ -3,6 +3,8 @@ package repositories
 import (
 	"context"
 	"fmt"
+	"github.com/jmoiron/sqlx"
+	"time"
 
 	"github.com/okiww/billing-loan-system/helpers"
 	"github.com/okiww/billing-loan-system/internal/loan/models"
@@ -64,10 +66,73 @@ func (l *loanRepository) FetchActiveLoan(ctx context.Context) ([]models.LoanMode
 	return activeLoans, nil
 }
 
+// UpdateLoanAndLoanBillsInTx update loan bills and loans
+func (l *loanRepository) UpdateLoanAndLoanBillsInTx(ctx context.Context, loanID, loanBillID, amount int) error {
+	err := l.ExecTx(ctx, l.DB, func(tx *sqlx.Tx) error {
+		// Update loan bill to Paid
+		err := l.UpdateBilledLoanBillToPaid(ctx,
+			tx,
+			loanBillID,
+		)
+		if err != nil {
+			return err
+		}
+
+		// Update Loan Outstanding and Status
+		err = l.UpdateOutStandingAmountAndStatus(ctx,
+			tx,
+			loanID,
+			amount,
+		)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (l *loanRepository) UpdateBilledLoanBillToPaid(ctx context.Context, tx *sqlx.Tx, id int) error {
+	query := `
+		UPDATE loan_bills SET status = ?, updated_at = ? WHERE id = ?
+	`
+	_, err := tx.ExecContext(ctx, query, time.Now(), models.StatusPaid, id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (l *loanRepository) UpdateOutStandingAmountAndStatus(ctx context.Context, tx *sqlx.Tx, id, amount int) error {
+	query := `
+		UPDATE payments
+		SET 
+			total_amount = total_amount - ?,
+			status = CASE
+				WHEN total_amount - ? = 0 THEN ?
+				ELSE status
+    		END
+		WHERE id = ?;
+	`
+	_, err := tx.ExecContext(ctx, query, amount, amount, models.StatusActive, id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 type LoanRepositoryInterface interface {
 	GetLoanByID(id int64) (*models.LoanModel, error)
 	CreateLoan(ctx context.Context, loan *models.LoanModel) (int64, error)
 	FetchActiveLoan(ctx context.Context) ([]models.LoanModel, error)
+	UpdateLoanAndLoanBillsInTx(ctx context.Context, loanID, loanBillID, amount int) error
+	UpdateBilledLoanBillToPaid(ctx context.Context, tx *sqlx.Tx, id int) error
+	UpdateOutStandingAmountAndStatus(ctx context.Context, tx *sqlx.Tx, id, amount int) error
 }
 
 func NewLoanRepository(db *mysql.DBMySQL) LoanRepositoryInterface {

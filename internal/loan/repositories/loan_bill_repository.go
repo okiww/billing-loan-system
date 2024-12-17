@@ -2,9 +2,8 @@ package repositories
 
 import (
 	"context"
-
 	"github.com/okiww/billing-loan-system/helpers"
-	models2 "github.com/okiww/billing-loan-system/internal/loan/models"
+	"github.com/okiww/billing-loan-system/internal/loan/models"
 	mysql "github.com/okiww/billing-loan-system/pkg/db"
 	"github.com/okiww/billing-loan-system/pkg/logger"
 	"github.com/sirupsen/logrus"
@@ -15,7 +14,7 @@ type loanBillRepository struct {
 }
 
 // CreateLoanBill inserts a new loan_bills into the database
-func (l *loanBillRepository) CreateLoanBill(ctx context.Context, loanBill *models2.LoanBillModel) error {
+func (l *loanBillRepository) CreateLoanBill(ctx context.Context, loanBill *models.LoanBillModel) error {
 	query := `INSERT INTO loan_bills (loan_id, billing_date, billing_amount, billing_total_amount, billing_number, status, created_at, updated_at)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
 	_, err := l.DB.ExecContext(ctx, query, loanBill.LoanID, loanBill.BillingDate, loanBill.BillingAmount, loanBill.BillingTotalAmount, loanBill.BillingNumber, loanBill.Status, loanBill.CreatedAt, loanBill.UpdatedAt)
@@ -28,6 +27,7 @@ func (l *loanBillRepository) CreateLoanBill(ctx context.Context, loanBill *model
 	return err
 }
 
+// UpdateLoanBillStatuses Update loan bill statuses
 func (l *loanBillRepository) UpdateLoanBillStatuses(ctx context.Context) error {
 	query := `
 		UPDATE loan_bills 
@@ -52,6 +52,7 @@ func (l *loanBillRepository) UpdateLoanBillStatuses(ctx context.Context) error {
 	return nil
 }
 
+// GetTotalLoanBillOverdueByLoanID get total overdue loan by id
 func (l *loanBillRepository) GetTotalLoanBillOverdueByLoanID(ctx context.Context, id int32) (int, error) {
 	query := `
 		SELECT COUNT(lb.id) AS overdue_count
@@ -74,7 +75,7 @@ func (l *loanBillRepository) GetTotalLoanBillOverdueByLoanID(ctx context.Context
 }
 
 type LoanBillRepositoryInterface interface {
-	CreateLoanBill(ctx context.Context, loanBill *models2.LoanBillModel) error
+	CreateLoanBill(ctx context.Context, loanBill *models.LoanBillModel) error
 	UpdateLoanBillStatuses(ctx context.Context) error
 	GetTotalLoanBillOverdueByLoanID(ctx context.Context, id int32) (int, error)
 }

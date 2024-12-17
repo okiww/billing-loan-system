@@ -20,4 +20,5 @@ func RegisterRoutes(router *mux.Router, h Domain) {
 
 	paymentRouter := baseRouter.PathPrefix("/payment").Subrouter()
 	paymentRouter.HandleFunc("/create", h.Domain.PaymentHandler.Create).Methods(http.MethodPost)
+	paymentRouter.HandleFunc("/test-publish", h.Domain.PaymentHandler.TestPublishMessage).Methods(http.MethodPost)
 }

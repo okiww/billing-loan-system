@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/okiww/billing-loan-system/configs"
 	"github.com/okiww/billing-loan-system/internal/ctx/servicectx"
 	"github.com/okiww/billing-loan-system/internal/loan/repositories"
 	"github.com/okiww/billing-loan-system/internal/loan/services"
@@ -9,11 +10,12 @@ import (
 	userRepo "github.com/okiww/billing-loan-system/internal/user/repositories"
 	userService "github.com/okiww/billing-loan-system/internal/user/services"
 	mysql "github.com/okiww/billing-loan-system/pkg/db"
+	"github.com/okiww/billing-loan-system/pkg/mq"
 	"github.com/okiww/billing-loan-system/port/rest/handlerctx"
 	"github.com/okiww/billing-loan-system/port/rest/handlers"
 )
 
-func InitCtx(db *mysql.DBMySQL) handlerctx.HandlerCtx {
+func InitCtx(db *mysql.DBMySQL, mq *mq.RabbitMQ, rabbitMQCfg *configs.RabbitMQConfig) handlerctx.HandlerCtx {
 	loanRepository := repositories.NewLoanRepository(db)
 	loanBillRepository := repositories.NewLoanBillRepository(db)
 	userRepository := userRepo.NewUserRepository(db)
@@ -22,12 +24,12 @@ func InitCtx(db *mysql.DBMySQL) handlerctx.HandlerCtx {
 	serviceCtx := servicectx.ServiceCtx{
 		LoanService:    services.NewLoanService(loanRepository, loanBillRepository),
 		UserService:    userService.NewUserService(userRepository),
-		PaymentService: paymentService.NewPaymentService(paymentRepository),
+		PaymentService: paymentService.NewPaymentService(paymentRepository, loanRepository),
 	}
 
 	handlerCtx := handlerctx.HandlerCtx{
 		LoanHandler:    handlers.NewLoanHandler(serviceCtx),
-		PaymentHandler: handlers.NewPaymentHandler(serviceCtx),
+		PaymentHandler: handlers.NewPaymentHandler(serviceCtx, mq, rabbitMQCfg),
 	}
 
 	return handlerCtx

@@ -31,8 +31,20 @@ func (p *paymentRepository) Create(ctx context.Context, payment *models.Payment)
 	return nil
 }
 
+func (p *paymentRepository) UpdatePaymentStatus(ctx context.Context, id int32, status string, note string) error {
+	query := `
+		UPDATE payments SET status = ?, updated_at = ?, note = ? WHERE id = ?
+	`
+	_, err := p.DB.ExecContext(ctx, query, status, time.Now(), note, id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 type PaymentRepositoryInterface interface {
 	Create(ctx context.Context, payment *models.Payment) error
+	UpdatePaymentStatus(ctx context.Context, id int32, status string, note string) error
 }
 
 func NewPaymentRepository(db *mysql.DBMySQL) PaymentRepositoryInterface {

@@ -16,8 +16,9 @@ const (
 )
 
 type Config struct {
-	Http HttpConfig
-	DB   DBConfig
+	Http     HttpConfig
+	DB       DBConfig
+	RabbitMQ RabbitMQConfig
 }
 
 type HttpConfig struct {
@@ -35,6 +36,11 @@ type DBConfig struct {
 	MaxOpenConn     int
 	MaxIdleConn     int
 	ConnMaxLifetime int
+}
+
+type RabbitMQConfig struct {
+	Dsn       string
+	QueueName string
 }
 
 func InitConfig() Config {

@@ -124,7 +124,7 @@ func (l *loanService) generateLoanBills(ctx context.Context, loan *models.LoanMo
 				BillingAmount:      weeklyAmount,
 				BillingTotalAmount: weeklyTotalAmount,
 				BillingNumber:      week,
-				Status:             "PENDING", // You can adjust this based on the actual status you want
+				Status:             models.StatusPending, // You can adjust this based on the actual status you want
 				CreatedAt:          time.Now(),
 				UpdatedAt:          time.Now(),
 			}

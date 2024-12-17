@@ -3,8 +3,7 @@ package services
 import (
 	"context"
 	"github.com/okiww/billing-loan-system/internal/dto"
-	"time"
-
+	loanRepo "github.com/okiww/billing-loan-system/internal/loan/repositories"
 	"github.com/okiww/billing-loan-system/internal/payment/models"
 	"github.com/okiww/billing-loan-system/internal/payment/repositories"
 	"github.com/okiww/billing-loan-system/pkg/errors"
@@ -12,9 +11,11 @@ import (
 
 type paymentService struct {
 	paymentRepo repositories.PaymentRepositoryInterface
+	loanRepo    loanRepo.LoanRepositoryInterface
 }
 
-func (p *paymentService) CreatePayment(ctx context.Context, paymentRequest *dto.PaymentRequest) error {
+// MakePayment is for initial payment
+func (p *paymentService) MakePayment(ctx context.Context, paymentRequest *dto.PaymentRequest) error {
 	// Optionally, you can validate or process business logic here (e.g., check if payment is valid)
 	if paymentRequest.Amount <= 0 {
 		return errors.New("payment amount must be greater than zero")
@@ -27,16 +28,47 @@ func (p *paymentService) CreatePayment(ctx context.Context, paymentRequest *dto.
 		LoanBillID: paymentRequest.LoanBillID,
 		Amount:     paymentRequest.Amount,
 		Status:     models.StatusPending,
-		CreatedAt:  time.Now(),
 	})
 }
 
-type PaymentServiceInterface interface {
-	CreatePayment(ctx context.Context, paymentRequest *dto.PaymentRequest) error
+// ProcessUpdatePayment is for update payment via subscriber
+func (p *paymentService) ProcessUpdatePayment(ctx context.Context, payment models.Payment) error {
+	//TODO implement me
+	// 1. Update Payment to PROCESS
+	err := p.paymentRepo.UpdatePaymentStatus(ctx, int32(payment.ID), models.StatusProcess, "")
+	if err != nil {
+		return err
+	}
+
+	// IN TX
+	// 2. Update Loan Bills to PAID
+	// 3. Check if it is last bill of the loan, update Loan status to CLOSED
+	err = p.loanRepo.UpdateLoanAndLoanBillsInTx(ctx, payment.LoanID, payment.LoanBillID, payment.Amount)
+	if err != nil {
+		// if error, update payment to failed
+		err := p.paymentRepo.UpdatePaymentStatus(ctx, int32(payment.ID), models.StatusFailed, models.Note_Failed_With_ERROR_SYSTEM)
+		if err != nil {
+			return err
+		}
+		return err
+	}
+	// DONE TX
+	// 4. Update Payment to Success
+	err = p.paymentRepo.UpdatePaymentStatus(ctx, int32(payment.ID), models.StatusCompleted, "")
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-func NewPaymentService(paymentRepo repositories.PaymentRepositoryInterface) PaymentServiceInterface {
+type PaymentServiceInterface interface {
+	MakePayment(ctx context.Context, paymentRequest *dto.PaymentRequest) error
+	ProcessUpdatePayment(ctx context.Context, request models.Payment) error
+}
+
+func NewPaymentService(paymentRepo repositories.PaymentRepositoryInterface, loanRepo loanRepo.LoanRepositoryInterface) PaymentServiceInterface {
 	return &paymentService{
 		paymentRepo: paymentRepo,
+		loanRepo:    loanRepo,
 	}
 }

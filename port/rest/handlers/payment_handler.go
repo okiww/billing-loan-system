@@ -3,6 +3,10 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"github.com/okiww/billing-loan-system/configs"
+	"github.com/okiww/billing-loan-system/internal/payment/models"
+	"github.com/okiww/billing-loan-system/pkg/logger"
+	"github.com/okiww/billing-loan-system/pkg/mq"
 	"net/http"
 
 	"github.com/okiww/billing-loan-system/internal/ctx/servicectx"
@@ -13,6 +17,31 @@ import (
 
 type paymentHandler struct {
 	servicectx.ServiceCtx
+	*mq.RabbitMQ
+	*configs.RabbitMQConfig
+}
+
+func (p *paymentHandler) TestPublishMessage(w http.ResponseWriter, r *http.Request) {
+	// Create an array of Payment structs
+	payments := []models.Payment{
+		{ID: 1, UserID: 101, LoanID: 202, LoanBillID: 303, Amount: 5000, TotalAmount: 5100, Status: "paid"},
+		{ID: 2, UserID: 102, LoanID: 203, LoanBillID: 304, Amount: 3000, TotalAmount: 3100, Status: "pending"},
+		{ID: 3, UserID: 103, LoanID: 204, LoanBillID: 305, Amount: 7000, TotalAmount: 7100, Status: "paid"},
+	}
+
+	// Serialize the array to JSON
+	jsonData, err := json.Marshal(payments)
+	if err != nil {
+		logger.GetLogger().Fatalf("Failed to marshal array to JSON: %v", err)
+	}
+
+	err = p.RabbitMQ.PublishMessage(p.RabbitMQConfig.QueueName, string(jsonData))
+	if err != nil {
+		logger.GetLogger().Fatalf("Failed to publish message: %v", err)
+	}
+
+	logger.GetLogger().Println("Message published successfully!")
+	response.NewJSONResponse().SetData(nil).SetMessage("Message published successfully!").WriteResponse(w)
 }
 
 func (p *paymentHandler) Create(w http.ResponseWriter, r *http.Request) {
@@ -31,7 +60,7 @@ func (p *paymentHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Step 4: Create the payment record in the database
-	err = p.ServiceCtx.PaymentService.CreatePayment(context.Background(), &request)
+	err = p.ServiceCtx.PaymentService.MakePayment(context.Background(), &request)
 	if err != nil {
 		response.NewJSONResponse().SetError(errors.ErrorInternalServer).SetMessage(err.Error()).WriteResponse(w)
 		return
@@ -42,10 +71,11 @@ func (p *paymentHandler) Create(w http.ResponseWriter, r *http.Request) {
 	response.NewJSONResponse().SetData(nil).SetMessage("Payment successfully created").WriteResponse(w)
 }
 
-func NewPaymentHandler(ctx servicectx.ServiceCtx) PaymentHandlerInterface {
-	return &paymentHandler{ctx}
+func NewPaymentHandler(ctx servicectx.ServiceCtx, rabbitMQ *mq.RabbitMQ, rabbitMQCfg *configs.RabbitMQConfig) PaymentHandlerInterface {
+	return &paymentHandler{ctx, rabbitMQ, rabbitMQCfg}
 }
 
 type PaymentHandlerInterface interface {
 	Create(w http.ResponseWriter, r *http.Request)
+	TestPublishMessage(w http.ResponseWriter, r *http.Request)
 }

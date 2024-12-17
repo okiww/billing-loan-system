@@ -9,6 +9,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+	sqlx "github.com/jmoiron/sqlx"
 	models "github.com/okiww/billing-loan-system/internal/loan/models"
 )
 
@@ -78,4 +79,46 @@ func (m *MockLoanRepositoryInterface) GetLoanByID(id int64) (*models.LoanModel, 
 func (mr *MockLoanRepositoryInterfaceMockRecorder) GetLoanByID(id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLoanByID", reflect.TypeOf((*MockLoanRepositoryInterface)(nil).GetLoanByID), id)
+}
+
+// UpdateBilledLoanBillToPaid mocks base method.
+func (m *MockLoanRepositoryInterface) UpdateBilledLoanBillToPaid(ctx context.Context, tx *sqlx.Tx, id int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateBilledLoanBillToPaid", ctx, tx, id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateBilledLoanBillToPaid indicates an expected call of UpdateBilledLoanBillToPaid.
+func (mr *MockLoanRepositoryInterfaceMockRecorder) UpdateBilledLoanBillToPaid(ctx, tx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateBilledLoanBillToPaid", reflect.TypeOf((*MockLoanRepositoryInterface)(nil).UpdateBilledLoanBillToPaid), ctx, tx, id)
+}
+
+// UpdateLoanAndLoanBillsInTx mocks base method.
+func (m *MockLoanRepositoryInterface) UpdateLoanAndLoanBillsInTx(ctx context.Context, loanID, loanBillID, amount int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateLoanAndLoanBillsInTx", ctx, loanID, loanBillID, amount)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateLoanAndLoanBillsInTx indicates an expected call of UpdateLoanAndLoanBillsInTx.
+func (mr *MockLoanRepositoryInterfaceMockRecorder) UpdateLoanAndLoanBillsInTx(ctx, loanID, loanBillID, amount interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateLoanAndLoanBillsInTx", reflect.TypeOf((*MockLoanRepositoryInterface)(nil).UpdateLoanAndLoanBillsInTx), ctx, loanID, loanBillID, amount)
+}
+
+// UpdateOutStandingAmountAndStatus mocks base method.
+func (m *MockLoanRepositoryInterface) UpdateOutStandingAmountAndStatus(ctx context.Context, tx *sqlx.Tx, id, amount int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateOutStandingAmountAndStatus", ctx, tx, id, amount)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateOutStandingAmountAndStatus indicates an expected call of UpdateOutStandingAmountAndStatus.
+func (mr *MockLoanRepositoryInterfaceMockRecorder) UpdateOutStandingAmountAndStatus(ctx, tx, id, amount interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOutStandingAmountAndStatus", reflect.TypeOf((*MockLoanRepositoryInterface)(nil).UpdateOutStandingAmountAndStatus), ctx, tx, id, amount)
 }

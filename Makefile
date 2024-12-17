@@ -2,6 +2,8 @@ serve-http:
 	@go run main.go http
 run-cron:
 	@go run main.go background
+run-worker:
+	@go run main.go worker
 
 test:
 	./coverage.sh;

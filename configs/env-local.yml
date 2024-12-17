@@ -11,3 +11,6 @@ db:
   maxOpenConn: 30
   maxIdleConn: 10
   connMaxLifetime: 900
+rabbitMq:
+  dsn: "amqp://guest:guest@localhost:5672/"
+  queueName: "test_okky"
