@@ -43,7 +43,6 @@ func TestCreateLoan(t *testing.T) {
 				UserID:     1,
 				Name:       "John Doe",
 				LoanAmount: 10000,
-				Status:     "PENDING",
 			},
 			setup: func() {
 				// Mock getting interest percentage config
@@ -80,7 +79,6 @@ func TestCreateLoan(t *testing.T) {
 				UserID:     1,
 				Name:       "John Doe",
 				LoanAmount: 10000,
-				Status:     "PENDING",
 			},
 			setup: func() {
 				// Mock getting interest percentage config
@@ -114,7 +112,6 @@ func TestCreateLoan(t *testing.T) {
 				UserID:     1,
 				Name:       "John Doe",
 				LoanAmount: 10000,
-				Status:     "PENDING",
 			},
 			setup: func() {
 				// Mock getting interest percentage config

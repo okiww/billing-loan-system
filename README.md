@@ -2,6 +2,16 @@
 # Go Project Billing Loan
 
 This is a Go project that utilizes various tools and libraries including Go 1.23.1, MySQL, RabbitMQ, Viper, Cobra, Gomock & Mockgen, and Goose.
+## Flow
+### Database
+
+## Feature
+* **API Create Loan**
+    - Create Loan
+    - Get All Loan
+    - Make Payment
+* **Cronjob** is the background job that generate bills payment every weekly in monday
+* **Worker** is the worker that listening or as consumer message from rabbitMQ
 
 ## Setup & Installation
 

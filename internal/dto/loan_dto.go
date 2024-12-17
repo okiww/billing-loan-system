@@ -7,12 +7,9 @@ import (
 )
 
 type LoanRequest struct {
-	UserID     int       `json:"user_id"`
-	Name       string    `json:"name"`
-	LoanAmount int32     `json:"loan_amount"`
-	Status     string    `json:"status"` // ACTIVE, DELINQUENT, CLOSED, PENDING
-	StartDate  time.Time `json:"start_date"`
-	DueDate    time.Time `json:"due_date"`
+	UserID     int    `json:"user_id"`
+	Name       string `json:"name"`
+	LoanAmount int32  `json:"loan_amount"`
 }
 
 type LoanResponse struct {
@@ -43,30 +40,6 @@ func (r *LoanRequest) Validate() error {
 	// Check LoanAmount
 	if r.LoanAmount <= 0 {
 		return errors.New("loan_amount must be greater than 0")
-	}
-
-	// Check Status
-	validStatuses := map[string]bool{
-		"ACTIVE":     true,
-		"DELINQUENT": true,
-		"CLOSED":     true,
-		"PENDING":    true,
-	}
-	if !validStatuses[r.Status] {
-		return errors.New("invalid status; must be one of: ACTIVE, DELINQUENT, CLOSED, PENDING")
-	}
-
-	// Check StartDate
-	if r.StartDate.IsZero() {
-		return errors.New("start_date must be specified")
-	}
-
-	// Check DueDate
-	if r.DueDate.IsZero() {
-		return errors.New("due_date must be specified")
-	}
-	if r.DueDate.Before(r.StartDate) {
-		return errors.New("due_date must be after start_date")
 	}
 
 	return nil

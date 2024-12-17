@@ -107,20 +107,34 @@ func InitWorker() {
 
 // processPayment processes the incoming RabbitMQ message body for payment
 func processPayment(ctx context.Context, serviceCtx *servicectx.ServiceCtx, body []byte) error {
-	var payments models.Payment
-	err := json.Unmarshal(body, &payments)
+	var payment models.Payment
+	err := json.Unmarshal(body, &payment)
 	if err != nil {
 		logger.GetLogger().Errorf("Failed to unmarshal message: %v", err)
 		return err
 	}
 
-	err = serviceCtx.PaymentService.ProcessUpdatePayment(ctx, payments)
+	err = serviceCtx.PaymentService.ProcessUpdatePayment(ctx, payment)
 	if err != nil {
 		logger.GetLogger().Errorf("Failed to process payment: %v", err)
 		return err
 	}
 
+	total, err := serviceCtx.LoanService.CountLoanBillOverdueStatusesByID(ctx, int32(payment.LoanID))
+	if err != nil {
+		logger.Fatalf("Error Count loan bill overdue by loan id")
+		return err
+	}
+
+	if total > 1 {
+		err := serviceCtx.UserService.UpdateUserToDelinquent(ctx, int32(payment.UserID))
+		if err != nil {
+			logger.Fatalf("Error Update User To Delinquent")
+			return err
+		}
+	}
+
 	// Log the received array of Payment structs
-	logger.GetLogger().Infof("Done Process Payment: %+v", payments)
+	logger.GetLogger().Infof("Done Process Payment: %+v", payment)
 	return nil
 }

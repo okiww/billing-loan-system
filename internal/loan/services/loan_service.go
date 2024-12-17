@@ -63,7 +63,7 @@ func (l *loanService) CreateLoan(ctx context.Context, request dto.LoanRequest) e
 		LoanTotalAmount:    loanTotalAmount,
 		OutstandingAmount:  loanTotalAmount,
 		InterestPercentage: float64(interestPercentage), // TODO Should be get From Config
-		Status:             request.Status,
+		Status:             models.StatusActive,
 		StartDate:          time.Now(),
 		DueDate:            helpers.GenerateLastBillDate(time.Now(), 4),
 		LoanTermsPerWeek:   int32(loanTermsPerWeek), // TODO should be get from config
@@ -97,8 +97,6 @@ func (l *loanService) UpdateLoanBill(ctx context.Context) error {
 		logger.GetLogger().Error("[LoanService][UpdateLoanBill] Error when update loan bill statuses")
 		return err
 	}
-	// this is for update loan that already overdue but still billed to overdue
-	// TODO calculate user is_delinquent(if has more 2 overdue loan_bills)
 	return nil
 }
 

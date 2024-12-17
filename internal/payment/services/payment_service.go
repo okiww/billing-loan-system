@@ -34,7 +34,7 @@ func (p *paymentService) MakePayment(ctx context.Context, paymentRequest *dto.Pa
 	if loanBill.BillingTotalAmount != int32(paymentRequest.Amount) {
 		return nil, errors.New(dto.ErrorPaymentAmountNotMatchWithBill)
 	}
-	// Validation if loans.status = 'ACTIVE
+
 	loan, err := p.loanRepo.GetLoanByID(ctx, int64(paymentRequest.LoanID))
 	if err != nil {
 		return nil, err
@@ -43,8 +43,8 @@ func (p *paymentService) MakePayment(ctx context.Context, paymentRequest *dto.Pa
 	if loan.Status != loanModel.StatusActive {
 		return nil, errors.New(dto.ErrorLoanIsNotActive)
 	}
-	// Validation if loan_bills = paymentRequest.Amount
 
+	// Insert the payment into the database
 	id, err := p.paymentRepo.Create(ctx, &models.Payment{
 		UserID:     paymentRequest.UserID,
 		LoanID:     paymentRequest.LoanID,
@@ -63,7 +63,6 @@ func (p *paymentService) MakePayment(ctx context.Context, paymentRequest *dto.Pa
 		return nil, err
 	}
 
-	// Insert the payment into the database
 	return payment, nil
 }
 
