@@ -188,7 +188,7 @@ func TestGetPaymentByID(t *testing.T) {
 				rows := sqlmock.NewRows([]string{"id", "user_id", "loan_id", "loan_bill_id", "amount", "status", "created_at"}).
 					AddRow(1, 1, 2, 3, 5000, "PAID", time.Now())
 
-				mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM payments WHERE id = ?")).
+				mock.ExpectQuery(regexp.QuoteMeta("SELECT id, user_id, loan_id, loan_bill_id, amount, status, created_at, updated_at, note FROM payments WHERE id = ?")).
 					WithArgs(a.id).
 					WillReturnRows(rows)
 			},
@@ -199,7 +199,7 @@ func TestGetPaymentByID(t *testing.T) {
 			want:    nil,
 			wantErr: true,
 			mock: func(a args) {
-				mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM payments WHERE id = ?")).
+				mock.ExpectQuery(regexp.QuoteMeta("SELECT id, user_id, loan_id, loan_bill_id, amount, status, created_at, updated_at, note FROM payments WHERE id = ?")).
 					WithArgs(a.id).
 					WillReturnError(assert.AnError)
 			},

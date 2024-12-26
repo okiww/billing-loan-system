@@ -3,6 +3,8 @@ package services
 import (
 	"context"
 
+	"github.com/okiww/billing-loan-system/pkg/errors"
+
 	"github.com/okiww/billing-loan-system/internal/user/repositories"
 	"github.com/okiww/billing-loan-system/pkg/logger"
 	"github.com/sirupsen/logrus"
@@ -33,6 +35,10 @@ func (u *userService) IsDelinquent(ctx context.Context, userID int32) (bool, err
 			"user_id": userID,
 		}).Errorf("[UserService][IsDelinquent] error get user by id %v", err)
 		return false, err
+	}
+
+	if user == nil {
+		return false, errors.New("user not found")
 	}
 
 	return user.IsDelinquent, nil

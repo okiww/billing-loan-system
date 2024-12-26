@@ -66,21 +66,6 @@ func (mr *MockLoanRepositoryInterfaceMockRecorder) FetchActiveLoan(ctx interface
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchActiveLoan", reflect.TypeOf((*MockLoanRepositoryInterface)(nil).FetchActiveLoan), ctx)
 }
 
-// GetLoanByID mocks base method.
-func (m *MockLoanRepositoryInterface) GetLoanByID(ctx context.Context, id int64) (*models.LoanModel, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetLoanByID", ctx, id)
-	ret0, _ := ret[0].(*models.LoanModel)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetLoanByID indicates an expected call of GetLoanByID.
-func (mr *MockLoanRepositoryInterfaceMockRecorder) GetLoanByID(ctx, id interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLoanByID", reflect.TypeOf((*MockLoanRepositoryInterface)(nil).GetLoanByID), ctx, id)
-}
-
 // GetLoanByUserID mocks base method.
 func (m *MockLoanRepositoryInterface) GetLoanByUserID(ctx context.Context, userID int) ([]models.LoanModel, error) {
 	m.ctrl.T.Helper()
@@ -94,6 +79,21 @@ func (m *MockLoanRepositoryInterface) GetLoanByUserID(ctx context.Context, userI
 func (mr *MockLoanRepositoryInterfaceMockRecorder) GetLoanByUserID(ctx, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLoanByUserID", reflect.TypeOf((*MockLoanRepositoryInterface)(nil).GetLoanByUserID), ctx, userID)
+}
+
+// GetLoanStatusByID mocks base method.
+func (m *MockLoanRepositoryInterface) GetLoanStatusByID(ctx context.Context, id int64) (*models.LoanModel, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetLoanStatusByID", ctx, id)
+	ret0, _ := ret[0].(*models.LoanModel)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetLoanStatusByID indicates an expected call of GetLoanStatusByID.
+func (mr *MockLoanRepositoryInterfaceMockRecorder) GetLoanStatusByID(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLoanStatusByID", reflect.TypeOf((*MockLoanRepositoryInterface)(nil).GetLoanStatusByID), ctx, id)
 }
 
 // UpdateBilledLoanBillToPaid mocks base method.

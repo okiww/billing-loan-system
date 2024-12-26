@@ -50,14 +50,27 @@ func (p *paymentRepository) UpdatePaymentStatus(ctx context.Context, id int32, s
 }
 
 func (p *paymentRepository) GetPaymentByID(ctx context.Context, id int32) (*models.Payment, error) {
-	payment := &models.Payment{}
-	query := "SELECT * FROM payments WHERE id = ?"
-	err := p.DB.Get(payment, query, id)
+
+	query := "SELECT id, user_id, loan_id, loan_bill_id, amount, status, created_at, updated_at, note FROM payments WHERE id = ?"
+
+	rows, err := p.DB.QueryxContext(ctx, query, id)
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
-	return payment, nil
+	var payment models.Payment
+	for rows.Next() {
+		if err := rows.StructScan(&payment); err != nil {
+			return nil, err
+		}
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return &payment, nil
 }
 
 type PaymentRepositoryInterface interface {

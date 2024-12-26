@@ -40,19 +40,18 @@ func TestBillingConfigRepository_GetBillingConfigByName(t *testing.T) {
 				name: "loan_interest_percentage",
 			},
 			want: &models.BillingConfig{
-				ID:    1,
 				Name:  "loan_interest_percentage",
 				Value: "{\"is_active\":true,\"value\":10}",
 			},
 			wantErr: false,
 			mock: func(a args) {
 				mock.ExpectQuery(regexp.QuoteMeta(
-					`SELECT * FROM billing_configs WHERE name = ?`)).
+					`SELECT name, value FROM billing_configs WHERE name = ?`)).
 					WithArgs(a.name).
 					WillReturnRows(sqlmock.NewRows([]string{
-						"id", "name", "value",
+						"name", "value",
 					}).AddRow(
-						1, "loan_interest_percentage", "{\"is_active\":true,\"value\":10}",
+						"loan_interest_percentage", "{\"is_active\":true,\"value\":10}",
 					))
 			},
 		},
@@ -66,7 +65,7 @@ func TestBillingConfigRepository_GetBillingConfigByName(t *testing.T) {
 			wantErr: true,
 			mock: func(a args) {
 				mock.ExpectQuery(regexp.QuoteMeta(
-					`SELECT * FROM billing_configs WHERE name = ?`)).
+					`SELECT name, value FROM billing_configs WHERE name = ?`)).
 					WithArgs(a.name).
 					WillReturnError(sql.ErrNoRows)
 			},
@@ -81,7 +80,7 @@ func TestBillingConfigRepository_GetBillingConfigByName(t *testing.T) {
 			wantErr: true,
 			mock: func(a args) {
 				mock.ExpectQuery(regexp.QuoteMeta(
-					`SELECT * FROM billing_configs WHERE name = ?`)).
+					`SELECT name, value FROM billing_configs WHERE name = ?`)).
 					WithArgs(a.name).
 					WillReturnError(errors.New("db error"))
 			},
@@ -95,12 +94,12 @@ func TestBillingConfigRepository_GetBillingConfigByName(t *testing.T) {
 			got, err := tt.s.GetBillingConfigByName(context.Background(), tt.args.name)
 
 			if (err != nil) != tt.wantErr {
-				t.Errorf("GetLoanByID() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("GetBillingConfigByName() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
 			if !tt.wantErr && !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("GetLoanByID() got = %v, want %v", got, tt.want)
+				t.Errorf("GetBillingConfigByName() got = %v, want %v", got, tt.want)
 			}
 
 			// Validate expectations

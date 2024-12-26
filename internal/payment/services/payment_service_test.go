@@ -53,7 +53,7 @@ func TestMakePayment(t *testing.T) {
 					GetLoanBillByID(context.Background(), 1).
 					Return(&models.LoanBillModel{Status: models.StatusBilled, BillingTotalAmount: 1000}, nil)
 				mockLoanRepo.EXPECT().
-					GetLoanByID(context.Background(), int64(1)).
+					GetLoanStatusByID(context.Background(), int64(1)).
 					Return(&models.LoanModel{Status: models.StatusActive}, nil)
 				mockPaymentRepo.EXPECT().
 					Create(context.Background(), gomock.Any()).
@@ -102,7 +102,7 @@ func TestMakePayment(t *testing.T) {
 					GetLoanBillByID(context.Background(), 1).
 					Return(&models.LoanBillModel{Status: models.StatusBilled, BillingTotalAmount: 1000}, nil)
 				mockLoanRepo.EXPECT().
-					GetLoanByID(context.Background(), int64(1)).
+					GetLoanStatusByID(context.Background(), int64(1)).
 					Return(&models.LoanModel{Status: models.StatusClosed}, nil)
 			},
 			expectedErr:     errors.New(dto.ErrorLoanIsNotActive),

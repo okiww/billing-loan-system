@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/okiww/billing-loan-system/helpers"
 	"github.com/okiww/billing-loan-system/internal/loan/models"
@@ -92,11 +93,28 @@ func (l *loanBillRepository) GetLoanBillsByLoanID(ctx context.Context, loanID in
 }
 
 func (l *loanBillRepository) GetLoanBillByID(ctx context.Context, id int) (*models.LoanBillModel, error) {
-	loan := &models.LoanBillModel{}
-	query := "SELECT * FROM loan_bills WHERE id = ?"
-	err := l.DB.GetContext(ctx, loan, query, id)
+	query := "SELECT id, status, billing_total_amount FROM loan_bills WHERE id = ?"
+	rows, err := l.DB.QueryxContext(ctx, query, id)
 	if err != nil {
 		return nil, err
+	}
+
+	defer rows.Close()
+	var loan *models.LoanBillModel
+	for rows.Next() {
+		loan = &models.LoanBillModel{}
+		if err := rows.Scan(&loan.ID, &loan.Status, &loan.BillingTotalAmount); err != nil {
+			return nil, err
+		}
+	}
+
+	// Check for errors during iteration
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	if loan == nil {
+		return nil, fmt.Errorf("no loan bill found with id %d", id)
 	}
 
 	return loan, nil

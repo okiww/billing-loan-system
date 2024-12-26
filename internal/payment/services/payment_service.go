@@ -36,7 +36,7 @@ func (p *paymentService) MakePayment(ctx context.Context, paymentRequest *dto.Pa
 		return nil, errors.New(dto.ErrorPaymentAmountNotMatchWithBill)
 	}
 
-	loan, err := p.loanRepo.GetLoanByID(ctx, int64(paymentRequest.LoanID))
+	loan, err := p.loanRepo.GetLoanStatusByID(ctx, int64(paymentRequest.LoanID))
 	if err != nil {
 		return nil, err
 	}

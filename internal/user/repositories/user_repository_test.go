@@ -129,7 +129,9 @@ func TestGetUserByID(t *testing.T) {
 			wantErr: false,
 			mock: func(a args) {
 				mock.ExpectQuery(regexp.QuoteMeta(
-					`SELECT id, name, is_delinquent FROM users WHERE id = ?`)).
+					`SELECT id, name, is_delinquent
+						FROM users
+						WHERE id = ?`)).
 					WithArgs(a.userID).
 					WillReturnRows(sqlmock.NewRows([]string{"id", "name", "is_delinquent"}).
 						AddRow(1, "John Doe", false))

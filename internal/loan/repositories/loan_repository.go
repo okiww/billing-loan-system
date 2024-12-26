@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -16,13 +17,30 @@ type loanRepository struct {
 	*mysql.DBMySQL
 }
 
-// GetLoanByID retrieves a loan by its ID
-func (l *loanRepository) GetLoanByID(ctx context.Context, id int64) (*models.LoanModel, error) {
-	loan := &models.LoanModel{}
-	query := "SELECT * FROM loans WHERE id = ?"
-	err := l.DB.GetContext(ctx, loan, query, id)
+// GetLoanStatusByID retrieves a loan by its ID
+func (l *loanRepository) GetLoanStatusByID(ctx context.Context, id int64) (*models.LoanModel, error) {
+	query := "SELECT status FROM loans WHERE id = ?"
+	rows, err := l.DB.QueryContext(ctx, query, id)
 	if err != nil {
 		return nil, err
+	}
+	defer rows.Close()
+
+	var loan *models.LoanModel
+	for rows.Next() {
+		loan = &models.LoanModel{}
+		if err := rows.Scan(&loan.Status); err != nil {
+			return nil, err
+		}
+	}
+
+	// Check for any errors during the row iteration
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	if loan == nil {
+		return nil, fmt.Errorf("no loan found with id %d", id)
 	}
 
 	return loan, nil
@@ -142,7 +160,7 @@ func (l *loanRepository) GetLoanByUserID(ctx context.Context, userID int) ([]mod
 }
 
 type LoanRepositoryInterface interface {
-	GetLoanByID(ctx context.Context, id int64) (*models.LoanModel, error)
+	GetLoanStatusByID(ctx context.Context, id int64) (*models.LoanModel, error)
 	CreateLoan(ctx context.Context, loan *models.LoanModel) (int64, error)
 	FetchActiveLoan(ctx context.Context) ([]models.LoanModel, error)
 	UpdateLoanAndLoanBillsInTx(ctx context.Context, loanID, loanBillID, amount int) error

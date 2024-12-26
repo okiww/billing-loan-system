@@ -446,8 +446,6 @@ func TestGetLoanBillByID(t *testing.T) {
 		id int
 	}
 
-	mockStartDate := time.Date(2024, 12, 16, 10, 0, 0, 0, time.UTC)
-
 	tests := []struct {
 		name    string
 		repo    LoanBillRepositoryInterface
@@ -464,24 +462,17 @@ func TestGetLoanBillByID(t *testing.T) {
 			},
 			want: &models.LoanBillModel{
 				ID:                 1,
-				LoanID:             1,
-				BillingDate:        mockStartDate,
-				BillingAmount:      1000,
 				BillingTotalAmount: 1200,
-				BillingNumber:      1,
 				Status:             "BILLED",
-				CreatedAt:          mockStartDate,
-				UpdatedAt:          mockStartDate,
 			},
 			wantErr: false,
 			mock: func(a args) {
 				mock.ExpectQuery(regexp.QuoteMeta(`
-						SELECT * FROM loan_bills WHERE id = ?
+						SELECT id, status, billing_total_amount FROM loan_bills WHERE id = ?
 					`)).WithArgs(a.id).WillReturnRows(sqlmock.NewRows([]string{
-					"id", "loan_id", "billing_date", "billing_amount", "billing_total_amount",
-					"billing_number", "status", "created_at", "updated_at",
+					"id", "status", "billing_total_amount",
 				}).
-					AddRow(1, 1, mockStartDate, 1000, 1200, 1, "BILLED", mockStartDate, mockStartDate),
+					AddRow(1, "BILLED", 1200),
 				)
 			},
 		},
@@ -495,7 +486,7 @@ func TestGetLoanBillByID(t *testing.T) {
 			wantErr: true,
 			mock: func(a args) {
 				mock.ExpectQuery(regexp.QuoteMeta(`
-						SELECT * FROM loan_bills WHERE id = ?
+						SELECT id, status, billing_total_amount FROM loan_bills WHERE id = ?
 					`)).
 					WithArgs(a.id).
 					WillReturnError(sql.ErrNoRows)
@@ -511,7 +502,7 @@ func TestGetLoanBillByID(t *testing.T) {
 			wantErr: true,
 			mock: func(a args) {
 				mock.ExpectQuery(regexp.QuoteMeta(`
-						SELECT * FROM loan_bills WHERE id = ?
+						SELECT id, status, billing_total_amount FROM loan_bills WHERE id = ?
 					`)).WillReturnError(errors.New("db error"))
 			},
 		},
